@@ -13,6 +13,7 @@
             --text-blue: #003d82;
             --white: #ffffff;
             --danger: #dc3545;
+            --spouse-bg: #cce5ff;
         }
 
         body {
@@ -121,21 +122,32 @@
             width: 0; height: 20px;
         }
 
-        /* Kotak Nama */
+        /* Kotak Nama & Pasangan */
         .tree li a {
             border: 2px solid var(--primary-blue);
-            padding: 10px 15px;
+            padding: 10px;
             text-decoration: none;
             color: var(--primary-blue);
-            font-weight: bold;
-            display: inline-block;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 5px;
             border-radius: 5px;
             background: var(--light-blue);
             transition: all 0.3s;
+            min-width: 100px;
         }
         .tree li a:hover {
-            background: var(--primary-blue);
-            color: var(--white);
+            box-shadow: 0 0 10px rgba(0, 86, 179, 0.4);
+            transform: scale(1.05);
+        }
+        .name-main { font-weight: bold; }
+        .name-spouse {
+            font-size: 0.85em;
+            color: #004494;
+            background: var(--spouse-bg);
+            padding: 3px 5px;
+            border-radius: 3px;
+            border: 1px dashed var(--primary-blue);
         }
 
         /* === MODAL (POPUP AKSI) === */
@@ -151,10 +163,10 @@
             text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         .modal-content input {
-            width: 90%; padding: 8px; margin-bottom: 15px;
+            width: 90%; padding: 8px; margin-bottom: 10px;
             border: 1px solid var(--primary-blue); border-radius: 4px;
         }
-        .modal-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .modal-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
         .modal-actions button { flex: 1 1 40%; font-size: 12px; }
         
     </style>
@@ -194,16 +206,22 @@
 
     <div id="action-modal" class="modal">
         <div class="modal-content">
-            <h3 id="modal-title" style="color: var(--primary-blue); margin-top: 0;">Aksi Anggota Keluarga</h3>
+            <h3 id="modal-title" style="color: var(--primary-blue); margin-top: 0;">Data Keluarga</h3>
             <input type="hidden" id="currentNodeId">
-            <input type="text" id="nodeName" placeholder="Nama Anggota">
+            <div style="text-align: left; width: 90%; margin: 0 auto;">
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary-blue);">Nama Utama:</label>
+                <input type="text" id="nodeName" placeholder="Contoh: Budi">
+                
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary-blue);">Nama Suami/Istri (Opsional):</label>
+                <input type="text" id="spouseName" placeholder="Contoh: Siti">
+            </div>
             <div class="modal-actions">
-                <button onclick="saveEdit()">Simpan Nama</button>
+                <button onclick="saveEdit()">Simpan Data</button>
                 <button onclick="addChild()">+ Tambah Anak</button>
                 <button class="danger" onclick="deleteNode()">Hapus Data</button>
                 <button onclick="closeModal()" style="background-color: #6c757d;">Batal</button>
             </div>
-            <p style="font-size: 11px; color: gray; margin-top: 15px;">*Menghapus data juga akan menghapus semua keturunannya.</p>
+            <p style="font-size: 11px; color: gray; margin-top: 15px;">*Menghapus data akan ikut menghapus keturunannya.</p>
         </div>
     </div>
 
@@ -231,9 +249,10 @@
         }
 
         // --- 2. MANAJEMEN DATA (Local Storage) ---
-        // Format Data: [{ id: 1, name: "Nama", parentId: null }]
+        // Format Data: [{ id: 1, name: "Nama", spouse: "Pasangan", parentId: null }]
         let familyData = JSON.parse(localStorage.getItem('nasabData')) || [];
 
+        // Fungsi ini otomatis dipanggil setiap ada perubahan data
         function saveData() {
             localStorage.setItem('nasabData', JSON.stringify(familyData));
             renderTree();
@@ -252,15 +271,30 @@
 
             emptyState.style.display = 'none';
             
-            // Mencari node utama (yang tidak memiliki orang tua)
             const rootNodes = familyData.filter(d => d.parentId === null);
             let html = '<ul>';
             rootNodes.forEach(root => {
-                html += `<li><a href="#" onclick="openModal(${root.id})">${root.name}</a>${buildChildrenHTML(root.id)}</li>`;
+                html += buildNodeHTML(root);
             });
             html += '</ul>';
 
             treeContainer.innerHTML = html;
+        }
+
+        function buildNodeHTML(node) {
+            let spouseHtml = '';
+            if (node.spouse && node.spouse.trim() !== '') {
+                spouseHtml = `<span class="name-spouse">💍 ${node.spouse}</span>`;
+            }
+
+            let html = `<li>
+                <a href="#" onclick="openModal(${node.id})">
+                    <span class="name-main">${node.name}</span>
+                    ${spouseHtml}
+                </a>
+                ${buildChildrenHTML(node.id)}
+            </li>`;
+            return html;
         }
 
         function buildChildrenHTML(parentId) {
@@ -269,10 +303,7 @@
             
             let html = '<ul>';
             children.forEach(child => {
-                html += `<li>
-                    <a href="#" onclick="openModal(${child.id})">${child.name}</a>
-                    ${buildChildrenHTML(child.id)}
-                </li>`;
+                html += buildNodeHTML(child);
             });
             html += '</ul>';
             return html;
@@ -281,9 +312,9 @@
         // --- 4. SISTEM CRUD (Tambah, Edit, Hapus) ---
         function addRoot() {
             const name = prompt("Masukkan nama leluhur pertama:");
-            if (name) {
-                familyData.push({ id: Date.now(), name: name, parentId: null });
-                saveData();
+            if (name && name.trim() !== '') {
+                familyData.push({ id: Date.now(), name: name, spouse: '', parentId: null });
+                saveData(); // Otomatis tersimpan
             }
         }
 
@@ -292,6 +323,7 @@
             if (node) {
                 document.getElementById('currentNodeId').value = id;
                 document.getElementById('nodeName').value = node.name;
+                document.getElementById('spouseName').value = node.spouse || ''; // Isi pasangan jika ada
                 document.getElementById('action-modal').style.display = 'flex';
             }
         }
@@ -303,13 +335,15 @@
         function saveEdit() {
             const id = parseInt(document.getElementById('currentNodeId').value);
             const newName = document.getElementById('nodeName').value;
+            const newSpouse = document.getElementById('spouseName').value;
             
-            if (newName.trim() === '') return alert('Nama tidak boleh kosong');
+            if (newName.trim() === '') return alert('Nama Utama tidak boleh kosong!');
 
             const nodeIndex = familyData.findIndex(d => d.id === id);
             if (nodeIndex > -1) {
                 familyData[nodeIndex].name = newName;
-                saveData();
+                familyData[nodeIndex].spouse = newSpouse; // Simpan pasangan
+                saveData(); // Otomatis tersimpan
                 closeModal();
             }
         }
@@ -319,30 +353,29 @@
             const childName = prompt("Masukkan nama anak:");
             
             if (childName && childName.trim() !== '') {
-                familyData.push({ id: Date.now(), name: childName, parentId: parentId });
-                saveData();
+                familyData.push({ id: Date.now(), name: childName, spouse: '', parentId: parentId });
+                saveData(); // Otomatis tersimpan
                 closeModal();
             }
         }
 
         function deleteNode() {
             const id = parseInt(document.getElementById('currentNodeId').value);
-            const confirmDelete = confirm("Yakin ingin menghapus anggota ini dan SELURUH keturunannya?");
+            const confirmDelete = confirm("Yakin ingin menghapus anggota ini beserta pasangannya dan SELURUH keturunannya?");
             
             if (confirmDelete) {
-                // Fungsi rekursif untuk menghapus anak-anaknya juga
                 function removeChildren(parentId) {
                     const children = familyData.filter(d => d.parentId === parentId);
                     children.forEach(child => {
-                        removeChildren(child.id); // Hapus cucu dst
+                        removeChildren(child.id);
                         familyData = familyData.filter(d => d.id !== child.id);
                     });
                 }
                 
                 removeChildren(id);
-                familyData = familyData.filter(d => d.id !== id); // Hapus node yang dipilih
+                familyData = familyData.filter(d => d.id !== id);
                 
-                saveData();
+                saveData(); // Otomatis tersimpan
                 closeModal();
             }
         }
