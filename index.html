@@ -15,7 +15,6 @@ body {
     background: #e3f2fd;
 }
 
-/* HEADER */
 header {
     background: #1565c0;
     color: white;
@@ -25,7 +24,6 @@ header {
     font-weight: bold;
 }
 
-/* CONTAINER */
 #tree-container {
     width: 100%;
     height: 80vh;
@@ -33,34 +31,38 @@ header {
     background: white;
 }
 
-/* SVG */
 svg {
     min-width: 1600px;
 }
 
-/* GARIS */
+/* garis */
 line {
     stroke: #1976d2;
     stroke-width: 2;
 }
 
-/* NODE */
+/* kotak */
 .node rect {
     fill: #ffffff;
     stroke: #1565c0;
     stroke-width: 2;
-    rx: 10;
+    rx: 12;
 }
 
+/* teks SUPER JELAS */
 .node text {
     font-size: 16px;
-    font-weight: bold;
-    fill: #000; /* 🔥 FIX biar selalu kebaca */
+    font-weight: 900;
+    fill: #000000;
+    stroke: #ffffff;
+    stroke-width: 3px;
+    paint-order: stroke;
+    pointer-events: none;
 }
 
-/* MENU */
+/* menu */
 .menu {
-    position: fixed; /* 🔥 FIX biar tidak ketutup */
+    position: fixed;
     background: white;
     border: 2px solid #1565c0;
     border-radius: 10px;
@@ -93,7 +95,8 @@ line {
 
 <div id="menu" class="menu">
     <button onclick="editNode()">✏️ Edit</button>
-    <button onclick="addSpouse()">👩 Tambah Pasangan</button>
+    <button onclick="addHusband()">👨 Tambah Suami</button>
+    <button onclick="addWife()">👩 Tambah Istri</button>
     <button onclick="addChild()">👶 Tambah Anak</button>
     <button onclick="deleteNode()">❌ Hapus</button>
     <button onclick="saveData()">💾 Simpan</button>
@@ -104,12 +107,15 @@ line {
 // DATA
 let data = JSON.parse(localStorage.getItem("tree")) || {
     name: "Ki. Adam",
-    spouses: [{ name: "Ny. Agami", children: [] }]
+    gender: "M",
+    spouses: [
+        { name: "Ny. Agami", gender: "F", children: [] }
+    ]
 };
 
 let selected = null;
 
-// BUILD
+// BUILD TREE
 function build(person, depth=0, x=800, nodes=[], links=[]){
 
     const sx = 250;
@@ -117,22 +123,27 @@ function build(person, depth=0, x=800, nodes=[], links=[]){
 
     nodes.push({name: person.name, x, y: depth*sy, ref: person});
 
-    person.spouses.forEach((sp,i)=>{
-        const px = x + (i+1)*sx;
+    if(person.spouses){
+        person.spouses.forEach((sp,i)=>{
 
-        nodes.push({name: sp.name, x:px, y:depth*sy, ref: sp});
+            const px = person.gender==="M"
+                ? x + (i+1)*sx
+                : x - (i+1)*sx;
 
-        links.push({x1:x,y1:depth*sy,x2:px,y2:depth*sy});
+            nodes.push({name: sp.name, x:px, y:depth*sy, ref: sp});
 
-        sp.children.forEach((c,j)=>{
-            const cx = px - 80 + j*160;
+            links.push({x1:x,y1:depth*sy,x2:px,y2:depth*sy});
 
-            nodes.push({name:c.name,x:cx,y:(depth+1)*sy,ref:c});
-            links.push({x1:px,y1:depth*sy,x2:cx,y2:(depth+1)*sy});
+            sp.children.forEach((c,j)=>{
+                const cx = px - 80 + j*160;
 
-            build(c, depth+2, cx, nodes, links);
+                nodes.push({name:c.name,x:cx,y:(depth+1)*sy,ref:c});
+                links.push({x1:px,y1:depth*sy,x2:cx,y2:(depth+1)*sy});
+
+                build(c, depth+2, cx, nodes, links);
+            });
         });
-    });
+    }
 
     return {nodes,links};
 }
@@ -162,6 +173,7 @@ function draw(){
         .data(g.nodes)
         .enter()
         .append("g")
+        .attr("class","node")
         .attr("transform",d=>`translate(${d.x},${d.y})`);
 
     node.append("rect")
@@ -172,7 +184,8 @@ function draw(){
 
     node.append("text")
         .attr("text-anchor","middle")
-        .attr("dy",5)
+        .attr("dominant-baseline","middle")
+        .attr("y",0)
         .text(d=>d.name);
 
     node.on("click",(e,d)=>{
@@ -197,12 +210,21 @@ function editNode(){
     if(n){ selected.name=n; draw(); }
 }
 
-function addSpouse(){
+function addHusband(){
     if(!selected.spouses) selected.spouses=[];
-    const n = prompt("Nama pasangan:");
+    const n = prompt("Nama suami:");
     if(!n) return;
 
-    selected.spouses.push({name:n,children:[]});
+    selected.spouses.push({name:n, gender:"M", children:[]});
+    draw();
+}
+
+function addWife(){
+    if(!selected.spouses) selected.spouses=[];
+    const n = prompt("Nama istri:");
+    if(!n) return;
+
+    selected.spouses.push({name:n, gender:"F", children:[]});
     draw();
 }
 
@@ -215,7 +237,7 @@ function addChild(){
     const n = prompt("Nama anak:");
     if(!n) return;
 
-    selected.children.push({name:n,spouses:[]});
+    selected.children.push({name:n, spouses:[]});
     draw();
 }
 
@@ -223,10 +245,9 @@ function deleteNode(){
     alert("Fitur hapus akan disempurnakan");
 }
 
-// 🔥 SIMPAN FIX
 function saveData(){
     localStorage.setItem("tree", JSON.stringify(data));
-    alert("Data berhasil disimpan!");
+    alert("Data tersimpan!");
 }
 
 // INIT
