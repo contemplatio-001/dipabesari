@@ -1,1 +1,24 @@
-{"tree":{"id":1,"name":"Leluhur Utama","partner":"","description":"Data dari server GitHub","children":[]}}
+{
+  "tree": {
+    "id": 1,
+    "name": "Leluhur Utama",
+    "partner": "",
+    "description": "Data dari server GitHub",
+    "children": [
+      {
+        "id": 1775057223417,
+        "name": "p",
+        "partner": "",
+        "description": "",
+        "children": []
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "superadmin",
+      "password": "123",
+      "role": "Administrator"
+    }
+  ]
+}
