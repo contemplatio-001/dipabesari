@@ -148,6 +148,11 @@
       "username": "superadmin",
       "password": "123",
       "role": "Administrator"
+    },
+    {
+      "username": "admin",
+      "password": "admin123",
+      "role": "Admin"
     }
   ]
 }
