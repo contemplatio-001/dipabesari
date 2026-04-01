@@ -15,28 +15,34 @@ body {
     background: #f4f6f9;
 }
 
-h2 {
+header {
     background: black;
     color: white;
-    padding: 15px;
-    margin: 0;
+    padding: 10px;
     text-align: center;
 }
 
 #tree {
     width: 100%;
-    height: 85vh;
+    height: 75vh;
     background: white;
 }
 
-/* NODE */
-.node rect {
-    fill: white;
-    stroke: black;
-    rx: 10;
+.controls {
+    text-align: center;
+    padding: 10px;
 }
 
-/* MENU */
+button {
+    margin: 5px;
+    padding: 10px;
+    border: none;
+    background: black;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
 .menu {
     position: absolute;
     background: white;
@@ -46,36 +52,39 @@ h2 {
     display: none;
     z-index: 999;
 }
-
 .menu button {
     display: block;
     width: 100%;
     margin: 5px 0;
-    padding: 8px;
-    border: none;
-    background: black;
-    color: white;
-    border-radius: 5px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Family Tree Profesional</h2>
+<header>
+    <h2>Family Tree Profesional</h2>
+</header>
 
 <div id="tree"></div>
 
+<div class="controls">
+    <button onclick="saveData()">💾 Simpan</button>
+    <button onclick="loadData()">📂 Load</button>
+    <button onclick="resetData()">🗑️ Reset</button>
+</div>
+
 <div id="menu" class="menu">
     <button onclick="editNode()">✏️ Edit</button>
-    <button onclick="addSpouse()">👩 Tambah Pasangan</button>
-    <button onclick="addChild()">👶 Tambah Anak</button>
+    <button onclick="addSpouse()">👩 Pasangan</button>
+    <button onclick="addChild()">👶 Anak</button>
     <button onclick="deleteNode()">❌ Hapus</button>
 </div>
 
 <script>
 
-let data = {
+// DATA
+let data = JSON.parse(localStorage.getItem("familyTree")) || {
     name: "Ki. Adam",
     spouse: { name: "Ny. Agami" },
     children: []
@@ -83,31 +92,52 @@ let data = {
 
 let selected = null;
 
-// KONVERSI DATA (pasangan jadi satu group)
-function convert(person) {
+// SIMPAN
+function saveData(){
+    localStorage.setItem("familyTree", JSON.stringify(data));
+    alert("Data berhasil disimpan!");
+}
 
-    let children = [];
-
-    if (person.children) {
-        person.children.forEach(c => {
-            children.push(convert(c));
-        });
+// LOAD
+function loadData(){
+    const saved = localStorage.getItem("familyTree");
+    if(saved){
+        data = JSON.parse(saved);
+        draw();
+        alert("Data dimuat!");
+    } else {
+        alert("Belum ada data tersimpan");
     }
+}
 
+// RESET
+function resetData(){
+    if(confirm("Hapus semua data?")){
+        localStorage.removeItem("familyTree");
+        location.reload();
+    }
+}
+
+// CONVERT
+function convert(p){
+    let children = [];
+    if(p.children){
+        p.children.forEach(c => children.push(convert(c)));
+    }
     return {
-        name: person.name + (person.spouse ? " & " + person.spouse.name : ""),
-        ref: person,
+        name: p.name + (p.spouse ? " & " + p.spouse.name : ""),
+        ref: p,
         children: children
     };
 }
 
-// DRAW TREE
-function draw() {
+// DRAW
+function draw(){
 
-    document.getElementById("tree").innerHTML = "";
+    document.getElementById("tree").innerHTML="";
 
     const width = window.innerWidth;
-    const height = 550;
+    const height = 500;
 
     const svg = d3.select("#tree")
         .append("svg")
@@ -115,95 +145,87 @@ function draw() {
         .attr("height", height);
 
     const root = d3.hierarchy(convert(data));
-    const tree = d3.tree().size([width - 100, height - 100]);
+    const tree = d3.tree().size([width-100, height-100]);
 
     tree(root);
 
-    // garis
     svg.selectAll("line")
         .data(root.links())
         .enter()
         .append("line")
-        .attr("x1", d => d.source.x + 50)
-        .attr("y1", d => d.source.y + 50)
-        .attr("x2", d => d.target.x + 50)
-        .attr("y2", d => d.target.y + 50)
-        .attr("stroke", "black");
+        .attr("x1", d=>d.source.x+50)
+        .attr("y1", d=>d.source.y+50)
+        .attr("x2", d=>d.target.x+50)
+        .attr("y2", d=>d.target.y+50)
+        .attr("stroke","black");
 
-    // node
     const node = svg.selectAll("g")
         .data(root.descendants())
         .enter()
         .append("g")
-        .attr("transform", d => `translate(${d.x + 50},${d.y + 50})`);
+        .attr("transform", d=>`translate(${d.x+50},${d.y+50})`);
 
     node.append("rect")
-        .attr("width", 140)
-        .attr("height", 40)
-        .attr("x", -70)
-        .attr("y", -20);
+        .attr("width",140)
+        .attr("height",40)
+        .attr("x",-70)
+        .attr("y",-20)
+        .attr("fill","white")
+        .attr("stroke","black");
 
     node.append("text")
-        .attr("text-anchor", "middle")
-        .attr("dy", 5)
-        .text(d => d.data.name);
+        .attr("text-anchor","middle")
+        .attr("dy",5)
+        .text(d=>d.data.name);
 
-    node.on("click", (event, d) => {
+    node.on("click",(event,d)=>{
         selected = d.data.ref;
 
         const menu = document.getElementById("menu");
-        menu.style.left = event.pageX + "px";
-        menu.style.top = event.pageY + "px";
-        menu.style.display = "block";
+        menu.style.left = event.pageX+"px";
+        menu.style.top = event.pageY+"px";
+        menu.style.display="block";
 
         event.stopPropagation();
     });
 
-    document.body.onclick = () => {
-        document.getElementById("menu").style.display = "none";
-    };
+    document.body.onclick=()=>{
+        document.getElementById("menu").style.display="none";
+    }
 }
 
-// EDIT
+// MENU ACTION
 function editNode(){
-    const n = prompt("Nama baru:", selected.name);
+    const n = prompt("Nama:", selected.name);
     if(n){
         selected.name = n;
         draw();
     }
 }
 
-// TAMBAH PASANGAN
 function addSpouse(){
     const n = prompt("Nama pasangan:");
     if(!n) return;
-
-    selected.spouse = { name: n };
+    selected.spouse = {name:n};
     draw();
 }
 
-// TAMBAH ANAK
 function addChild(){
     const n = prompt("Nama anak:");
     if(!n) return;
 
     selected.children = selected.children || [];
-    selected.children.push({
-        name: n,
-        children: []
-    });
+    selected.children.push({name:n, children:[]});
 
     draw();
 }
 
-// HAPUS
 function deleteNode(){
 
-    function remove(node, target){
+    function remove(node,target){
         if(!node.children) return;
-
-        node.children = node.children.filter(c => c !== target);
-        node.children.forEach(c => remove(c, target));
+        node.children = node.children.filter(c=>c!==target);
+        node.children.forEach(c=>remove(c,target));
     }
 
     if(selected === data){
