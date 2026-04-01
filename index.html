@@ -4,54 +4,92 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Family Tree Profesional</title>
+<title>Family Tree Modern</title>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: #f4f6f9;
+    font-family: 'Segoe UI', sans-serif;
+    background: #eef2f7;
 }
 
+/* HEADER */
 header {
-    background: black;
+    background: linear-gradient(90deg, #000, #444);
     color: white;
-    padding: 10px;
+    padding: 15px;
     text-align: center;
 }
 
-#tree {
+/* CONTAINER SCROLL */
+#tree-container {
     width: 100%;
     height: 75vh;
-    background: white;
+    overflow: auto;
+    background: #f9fafc;
+    border-top: 3px solid #ddd;
 }
 
+/* TREE */
+#tree {
+    min-width: 1200px;
+    height: 100%;
+}
+
+/* NODE STYLE */
+.node rect {
+    fill: white;
+    stroke: #333;
+    stroke-width: 1.5;
+    rx: 12;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.1));
+}
+
+.node text {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* LINE */
+line {
+    stroke: #999;
+    stroke-width: 1.5;
+}
+
+/* BUTTON */
 .controls {
     text-align: center;
     padding: 10px;
+    background: white;
 }
 
 button {
     margin: 5px;
-    padding: 10px;
+    padding: 10px 14px;
     border: none;
     background: black;
     color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
 }
 
+button:hover {
+    background: #333;
+}
+
+/* MENU */
 .menu {
     position: absolute;
     background: white;
-    border: 1px solid #ccc;
     border-radius: 10px;
     padding: 10px;
     display: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     z-index: 999;
 }
+
 .menu button {
     display: block;
     width: 100%;
@@ -63,15 +101,16 @@ button {
 <body>
 
 <header>
-    <h2>Family Tree Profesional</h2>
+    <h2>Family Tree Modern</h2>
 </header>
 
-<div id="tree"></div>
+<div id="tree-container">
+    <div id="tree"></div>
+</div>
 
 <div class="controls">
     <button onclick="saveData()">💾 Simpan</button>
     <button onclick="loadData()">📂 Load</button>
-    <button onclick="resetData()">🗑️ Reset</button>
 </div>
 
 <div id="menu" class="menu">
@@ -84,7 +123,7 @@ button {
 <script>
 
 // DATA
-let data = JSON.parse(localStorage.getItem("familyTree")) || {
+let data = JSON.parse(localStorage.getItem("tree")) || {
     name: "Ki. Adam",
     spouse: { name: "Ny. Agami" },
     children: []
@@ -92,37 +131,11 @@ let data = JSON.parse(localStorage.getItem("familyTree")) || {
 
 let selected = null;
 
-// SIMPAN
-function saveData(){
-    localStorage.setItem("familyTree", JSON.stringify(data));
-    alert("Data berhasil disimpan!");
-}
-
-// LOAD
-function loadData(){
-    const saved = localStorage.getItem("familyTree");
-    if(saved){
-        data = JSON.parse(saved);
-        draw();
-        alert("Data dimuat!");
-    } else {
-        alert("Belum ada data tersimpan");
-    }
-}
-
-// RESET
-function resetData(){
-    if(confirm("Hapus semua data?")){
-        localStorage.removeItem("familyTree");
-        location.reload();
-    }
-}
-
 // CONVERT
 function convert(p){
-    let children = [];
+    let children=[];
     if(p.children){
-        p.children.forEach(c => children.push(convert(c)));
+        p.children.forEach(c=>children.push(convert(c)));
     }
     return {
         name: p.name + (p.spouse ? " & " + p.spouse.name : ""),
@@ -136,8 +149,8 @@ function draw(){
 
     document.getElementById("tree").innerHTML="";
 
-    const width = window.innerWidth;
-    const height = 500;
+    const width = 1600;
+    const height = 800;
 
     const svg = d3.select("#tree")
         .append("svg")
@@ -145,33 +158,35 @@ function draw(){
         .attr("height", height);
 
     const root = d3.hierarchy(convert(data));
-    const tree = d3.tree().size([width-100, height-100]);
+
+    const tree = d3.tree()
+        .size([width - 200, height - 200])
+        .separation(() => 1.8); // 🔥 jarak diperlebar
 
     tree(root);
 
+    // garis
     svg.selectAll("line")
         .data(root.links())
         .enter()
         .append("line")
-        .attr("x1", d=>d.source.x+50)
-        .attr("y1", d=>d.source.y+50)
-        .attr("x2", d=>d.target.x+50)
-        .attr("y2", d=>d.target.y+50)
-        .attr("stroke","black");
+        .attr("x1", d=>d.source.x+100)
+        .attr("y1", d=>d.source.y+80)
+        .attr("x2", d=>d.target.x+100)
+        .attr("y2", d=>d.target.y+80);
 
+    // node
     const node = svg.selectAll("g")
         .data(root.descendants())
         .enter()
         .append("g")
-        .attr("transform", d=>`translate(${d.x+50},${d.y+50})`);
+        .attr("transform", d=>`translate(${d.x+100},${d.y+80})`);
 
     node.append("rect")
-        .attr("width",140)
-        .attr("height",40)
-        .attr("x",-70)
-        .attr("y",-20)
-        .attr("fill","white")
-        .attr("stroke","black");
+        .attr("width",160)
+        .attr("height",50)
+        .attr("x",-80)
+        .attr("y",-25);
 
     node.append("text")
         .attr("text-anchor","middle")
@@ -197,44 +212,47 @@ function draw(){
 // MENU ACTION
 function editNode(){
     const n = prompt("Nama:", selected.name);
-    if(n){
-        selected.name = n;
-        draw();
-    }
+    if(n){ selected.name=n; draw(); }
 }
 
 function addSpouse(){
     const n = prompt("Nama pasangan:");
     if(!n) return;
-    selected.spouse = {name:n};
+    selected.spouse={name:n};
     draw();
 }
 
 function addChild(){
     const n = prompt("Nama anak:");
     if(!n) return;
-
     selected.children = selected.children || [];
-    selected.children.push({name:n, children:[]});
-
+    selected.children.push({name:n,children:[]});
     draw();
 }
 
 function deleteNode(){
-
     function remove(node,target){
         if(!node.children) return;
-        node.children = node.children.filter(c=>c!==target);
+        node.children=node.children.filter(c=>c!==target);
         node.children.forEach(c=>remove(c,target));
     }
-
-    if(selected === data){
-        alert("Tidak bisa hapus root!");
-        return;
-    }
-
-    remove(data, selected);
+    if(selected===data){ alert("Tidak bisa hapus root!"); return; }
+    remove(data,selected);
     draw();
+}
+
+// SAVE
+function saveData(){
+    localStorage.setItem("tree", JSON.stringify(data));
+    alert("Tersimpan!");
+}
+
+function loadData(){
+    const d = localStorage.getItem("tree");
+    if(d){
+        data = JSON.parse(d);
+        draw();
+    }
 }
 
 // INIT
