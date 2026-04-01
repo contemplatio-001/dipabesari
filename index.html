@@ -4,59 +4,73 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Family Tree Ultimate</title>
+<title>Family Tree Modern UI</title>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: #eef2f7;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #eef2f7, #dfe9f3);
 }
 
+/* HEADER */
 header {
-    background: black;
+    background: linear-gradient(90deg, #000, #555);
     color: white;
     padding: 15px;
     text-align: center;
+    font-size: 20px;
 }
 
+/* CONTAINER */
 #tree-container {
     width: 100%;
-    height: 80vh;
+    height: 85vh;
     overflow: auto;
-    background: #f9fafc;
 }
 
-#tree {
-    min-width: 1400px;
-    height: 100%;
+/* SVG */
+svg {
+    min-width: 1600px;
 }
 
+/* GARIS */
+line {
+    stroke: #bbb;
+    stroke-width: 2;
+}
+
+/* NODE CARD */
 .node rect {
-    fill: white;
-    stroke: black;
-    rx: 10;
+    fill: #ffffff;
+    stroke: #ddd;
+    stroke-width: 1.5;
+    rx: 15;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));
 }
 
+/* TEKS */
 .node text {
     font-size: 13px;
-    text-anchor: middle;
+    font-weight: 600;
+    fill: #333;
 }
 
-line {
-    stroke: black;
+/* AVATAR */
+.avatar {
+    fill: #ccc;
 }
 
 /* MENU */
 .menu {
     position: absolute;
     background: white;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 10px;
     display: none;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
 .menu button {
@@ -65,9 +79,14 @@ line {
     margin: 5px 0;
     padding: 8px;
     border: none;
-    background: black;
+    background: linear-gradient(90deg, #000, #444);
     color: white;
-    border-radius: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.menu button:hover {
+    background: linear-gradient(90deg, #333, #666);
 }
 </style>
 </head>
@@ -75,7 +94,7 @@ line {
 <body>
 
 <header>
-    <h2>Family Tree Profesional</h2>
+    🌳 Family Tree Modern
 </header>
 
 <div id="tree-container">
@@ -84,9 +103,8 @@ line {
 
 <div id="menu" class="menu">
     <button onclick="editNode()">✏️ Edit</button>
-    <button onclick="addSpouse()">👩 Tambah Pasangan</button>
-    <button onclick="addChild()">👶 Tambah Anak</button>
-    <button onclick="deleteNode()">❌ Hapus</button>
+    <button onclick="addSpouse()">👩 Pasangan</button>
+    <button onclick="addChild()">👶 Anak</button>
 </div>
 
 <script>
@@ -101,61 +119,60 @@ let data = {
 
 let selected = null;
 
-// BUILD TREE CUSTOM
-function buildNodes(person, depth = 0, x = 700, nodes = [], links = []) {
+// BUILD
+function buildNodes(person, depth = 0, x = 800, nodes = [], links = []) {
 
-    const spacingX = 220;
-    const spacingY = 120;
+    const spaceX = 250;
+    const spaceY = 140;
 
-    // suami (utama)
-    nodes.push({ id: person, name: person.name, x: x, y: depth * spacingY, ref: person });
+    // suami
+    nodes.push({
+        name: person.name,
+        x: x,
+        y: depth * spaceY,
+        ref: person
+    });
 
     person.spouses.forEach((spouse, i) => {
 
-        const spouseX = x + (i + 1) * spacingX;
+        const sx = x + (i + 1) * spaceX;
 
         // istri
         nodes.push({
-            id: spouse,
             name: spouse.name,
-            x: spouseX,
-            y: depth * spacingY,
-            ref: spouse,
-            parent: person
+            x: sx,
+            y: depth * spaceY,
+            ref: spouse
         });
 
         // garis pasangan
         links.push({
-            source: { x: x, y: depth * spacingY },
-            target: { x: spouseX, y: depth * spacingY }
+            x1: x, y1: depth * spaceY,
+            x2: sx, y2: depth * spaceY
         });
 
-        // anak
-        spouse.children.forEach((child, index) => {
-            const childX = spouseX - 80 + index * 160;
+        spouse.children.forEach((child, idx) => {
+
+            const cx = sx - 80 + idx * 160;
 
             nodes.push({
-                id: child,
                 name: child.name,
-                x: childX,
-                y: (depth + 1) * spacingY,
-                ref: child,
-                parent: spouse
+                x: cx,
+                y: (depth + 1) * spaceY,
+                ref: child
             });
 
-            // garis ke anak
             links.push({
-                source: { x: spouseX, y: depth * spacingY },
-                target: { x: childX, y: (depth + 1) * spacingY }
+                x1: sx, y1: depth * spaceY,
+                x2: cx, y2: (depth + 1) * spaceY
             });
 
-            // rekursif
-            buildNodes(child, depth + 2, childX, nodes, links);
+            buildNodes(child, depth + 2, cx, nodes, links);
         });
 
     });
 
-    return { nodes, links };
+    return {nodes, links};
 }
 
 // DRAW
@@ -163,13 +180,10 @@ function draw(){
 
     document.getElementById("tree").innerHTML = "";
 
-    const width = 1600;
-    const height = 900;
-
     const svg = d3.select("#tree")
         .append("svg")
-        .attr("width", width)
-        .attr("height", height);
+        .attr("width", 1800)
+        .attr("height", 1000);
 
     const graph = buildNodes(data);
 
@@ -178,10 +192,10 @@ function draw(){
         .data(graph.links)
         .enter()
         .append("line")
-        .attr("x1", d=>d.source.x)
-        .attr("y1", d=>d.source.y)
-        .attr("x2", d=>d.target.x)
-        .attr("y2", d=>d.target.y);
+        .attr("x1", d=>d.x1)
+        .attr("y1", d=>d.y1)
+        .attr("x2", d=>d.x2)
+        .attr("y2", d=>d.y2);
 
     // node
     const node = svg.selectAll("g")
@@ -190,39 +204,49 @@ function draw(){
         .append("g")
         .attr("transform", d=>`translate(${d.x},${d.y})`);
 
+    // card
     node.append("rect")
-        .attr("width",140)
-        .attr("height",50)
-        .attr("x",-70)
-        .attr("y",-25);
+        .attr("width", 150)
+        .attr("height", 60)
+        .attr("x", -75)
+        .attr("y", -30);
 
+    // avatar
+    node.append("circle")
+        .attr("cx", 0)
+        .attr("cy", -20)
+        .attr("r", 12)
+        .attr("class", "avatar");
+
+    // nama
     node.append("text")
-        .text(d=>d.name)
-        .attr("dy",5);
+        .attr("dy", 10)
+        .attr("text-anchor", "middle")
+        .text(d => d.name);
 
-    node.on("click",(event,d)=>{
+    // klik
+    node.on("click", (event, d) => {
         selected = d.ref;
 
         const menu = document.getElementById("menu");
-        menu.style.left = event.pageX+"px";
-        menu.style.top = event.pageY+"px";
-        menu.style.display="block";
+        menu.style.left = event.pageX + "px";
+        menu.style.top = event.pageY + "px";
+        menu.style.display = "block";
 
         event.stopPropagation();
     });
 
-    document.body.onclick=()=>{
-        document.getElementById("menu").style.display="none";
-    }
+    document.body.onclick = () => {
+        document.getElementById("menu").style.display = "none";
+    };
 }
 
 // MENU
 function editNode(){
-    const n = prompt("Nama:", selected.name);
+    const n = prompt("Nama:");
     if(n){ selected.name=n; draw(); }
 }
 
-// TAMBAH PASANGAN
 function addSpouse(){
     if(!selected.spouses) selected.spouses = [];
     const n = prompt("Nama pasangan:");
@@ -232,23 +256,8 @@ function addSpouse(){
     draw();
 }
 
-// TAMBAH ANAK
 function addChild(){
-    const n = prompt("Nama anak:");
-    if(!n) return;
-
-    if(selected.children){
-        selected.children.push({name:n, spouses:[]});
-    } else {
-        alert("Tambah anak melalui pasangan!");
-    }
-
-    draw();
-}
-
-// HAPUS
-function deleteNode(){
-    alert("Fitur hapus kompleks (akan dibuat di upgrade berikutnya)");
+    alert("Tambah anak melalui pasangan");
 }
 
 // INIT
