@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pohon Nasab Terstruktur</title>
+    <title>Pohon Nasab Terkoneksi</title>
     <style>
         :root {
             --primary-blue: #0056b3;
@@ -13,89 +13,56 @@
             --white: #ffffff;
             --danger: #dc3545;
             --spouse-color: #ff8c00;
+            --line-color: #aaa;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: var(--bg-blue);
-            margin: 0; padding: 0;
-        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-blue); margin: 0; padding: 0; }
 
         /* LOGIN */
-        #login-container {
-            margin: 15vh auto; background: var(--white); padding: 30px;
-            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center; width: 300px;
-        }
-
+        #login-container { margin: 15vh auto; background: var(--white); padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; }
         #app-container { display: none; width: 100%; }
-        header {
-            background: var(--primary-blue); color: var(--white);
-            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-        }
+        header { background: var(--primary-blue); color: var(--white); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
 
-        .tree-wrapper {
-            width: 98%; margin: 20px auto; overflow-x: auto;
-            background: var(--white); padding: 40px; border-radius: 10px;
-            min-height: 80vh;
-        }
+        .tree-wrapper { width: 98%; margin: 20px auto; overflow-x: auto; background: var(--white); padding: 40px; border-radius: 10px; min-height: 80vh; }
 
         /* TREE STRUCTURE */
-        .tree ul {
-            padding-top: 20px; position: relative; display: flex; justify-content: center;
-        }
-        .tree li {
-            text-align: center; list-style-type: none; position: relative;
-            padding: 20px 10px 0 10px;
-        }
+        .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; }
+        .tree li { text-align: center; list-style-type: none; position: relative; padding: 20px 10px 0 10px; }
 
-        /* Garis Penghubung */
-        .tree li::before, .tree li::after {
-            content: ''; position: absolute; top: 0; right: 50%;
-            border-top: 2px solid #aaa; width: 50%; height: 20px;
-        }
-        .tree li::after { right: auto; left: 50%; border-left: 2px solid #aaa; }
+        /* Garis Vertikal Antar Generasi */
+        .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid var(--line-color); width: 50%; height: 20px; }
+        .tree li::after { right: auto; left: 50%; border-left: 2px solid var(--line-color); }
         .tree li:only-child::after, .tree li:only-child::before { display: none; }
         .tree li:only-child { padding-top: 0; }
         .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
-        .tree li:last-child::before { border-right: 2px solid #aaa; border-radius: 0 5px 0 0; }
+        .tree li:last-child::before { border-right: 2px solid var(--line-color); border-radius: 0 5px 0 0; }
         .tree li:first-child::after { border-radius: 5px 0 0 0; }
-        .tree ul ul::before {
-            content: ''; position: absolute; top: 0; left: 50%;
-            border-left: 2px solid #aaa; width: 0; height: 20px;
-        }
+        .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid var(--line-color); width: 0; height: 20px; }
 
-        /* NODE BOXES */
-        .family-unit { display: inline-flex; align-items: flex-start; gap: 5px; }
+        /* KOTAK KELUARGA & GARIS SUAMI ISTRI */
+        .family-unit { display: inline-flex; align-items: flex-start; gap: 40px; position: relative; }
         
+        /* Garis horizontal penghubung Suami-Istri */
+        .node-main-wrapper { position: relative; }
+        .node-main-wrapper::after {
+            content: ''; position: absolute; top: 50%; left: 100%;
+            width: 40px; border-top: 2px solid var(--primary-blue); z-index: 0;
+        }
+
         .node {
-            border: 2px solid var(--primary-blue);
-            padding: 8px 12px; border-radius: 6px;
+            border: 2px solid var(--primary-blue); padding: 8px 12px; border-radius: 6px;
             background: var(--light-blue); color: var(--text-blue);
-            min-width: 100px; cursor: pointer; font-weight: bold;
+            min-width: 100px; cursor: pointer; font-weight: bold; position: relative; z-index: 1;
         }
 
-        .spouse-node {
-            border: 2px dashed var(--spouse-color);
-            background: #fff9f0; color: #a05a00;
-        }
+        .spouse-node { border: 2px solid var(--spouse-color); background: #fff9f0; color: #a05a00; }
 
-        .couple-group {
-            display: flex; flex-direction: column; align-items: center;
-        }
+        .couple-group { display: flex; flex-direction: column; align-items: center; position: relative; }
 
         /* MODAL */
-        .modal {
-            display: none; position: fixed; z-index: 1000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: white; padding: 25px; border-radius: 12px;
-            width: 380px; max-height: 90vh; overflow-y: auto;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 380px; }
         input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        
         .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; }
         .btn-blue { background: var(--primary-blue); color: white; }
         .btn-orange { background: var(--spouse-color); color: white; }
@@ -114,28 +81,26 @@
     <div id="app-container">
         <header>
             <strong>Pohon Nasab Keluarga</strong>
-            <button class="btn" onclick="location.reload()">Keluar</button>
+            <button class="btn" onclick="location.reload()" style="background:white; color:var(--primary-blue)">Keluar</button>
         </header>
 
         <div class="tree-wrapper">
             <div id="tree-display" class="tree"></div>
             <div id="empty-msg" style="display:none; text-align:center;">
-                <button class="btn btn-blue" onclick="initPohon()">Buat Akar Pohon (Leluhur)</button>
+                <button class="btn btn-blue" onclick="initPohon()">Mulai Pohon Nasab</button>
             </div>
         </div>
     </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
-            <h3 id="m-title" style="margin-top:0">Kelola Anggota</h3>
+            <h3 id="m-title">Kelola Anggota</h3>
             <label>Nama:</label>
             <input type="text" id="m-name">
             <input type="hidden" id="m-id">
-            
             <div id="m-actions">
-                <p style="font-weight:bold; font-size:13px; color:var(--primary-blue)">Tindakan:</p>
                 <button class="btn btn-blue" onclick="updateName()">Simpan Nama</button>
-                <button class="btn btn-orange" id="btn-add-spouse" onclick="addSpouse()">+ Tambah Istri/Suami</button>
+                <button class="btn btn-orange" id="btn-add-spouse" onclick="addSpouse()">+ Tambah Pasangan</button>
                 <hr>
                 <button class="btn btn-blue" style="background:#28a745" id="btn-add-child" onclick="addChild()">+ Tambah Anak</button>
                 <button class="btn btn-red" onclick="hapusNode()">Hapus</button>
@@ -150,14 +115,13 @@
                 document.getElementById('login-container').style.display='none';
                 document.getElementById('app-container').style.display='block';
                 render();
-            } else { alert('Gagal!'); }
+            } else { alert('Salah!'); }
         }
 
-        // DATA: [{id, name, parentId, isSpouse, spouseOf}]
-        let db = JSON.parse(localStorage.getItem('nasab_v3')) || [];
+        let db = JSON.parse(localStorage.getItem('nasab_v4')) || [];
 
         function save() {
-            localStorage.setItem('nasab_v3', JSON.stringify(db));
+            localStorage.setItem('nasab_v4', JSON.stringify(db));
             render();
         }
 
@@ -170,37 +134,30 @@
             const area = document.getElementById('tree-display');
             if(db.length === 0) { document.getElementById('empty-msg').style.display='block'; area.innerHTML=''; return; }
             document.getElementById('empty-msg').style.display='none';
-
             const root = db.find(d => !d.parentId && !d.isSpouse);
             area.innerHTML = `<ul>${buildTree(root)}</ul>`;
         }
 
         function buildTree(node) {
-            // Cari pasangan dari node ini
             const spouses = db.filter(d => d.isSpouse && d.spouseOf === node.id);
             
+            // Wrapper untuk orang utama agar bisa menarik garis ke samping
             let html = `<li><div class="family-unit">`;
             
-            // Render Orang Utama
-            html += `<div class="node" onclick="showModal('${node.id}')">${node.name}</div>`;
+            // Jika ada pasangan, bungkus orang utama dengan class penarik garis
+            const hasSpouseClass = spouses.length > 0 ? 'node-main-wrapper' : '';
+            html += `<div class="${hasSpouseClass}"><div class="node" onclick="showModal('${node.id}')">${node.name}</div></div>`;
             
-            // Render Pasangan-pasangan (jika ada) di kolom berbeda
-            spouses.forEach(s => {
-                html += `<div class="couple-group">
+            spouses.forEach((s, index) => {
+                // Tambahkan garis ke pasangan selanjutnya jika poligami
+                const extraLine = (index < spouses.length - 1) ? 'node-main-wrapper' : '';
+                html += `<div class="couple-group ${extraLine}">
                             <div class="node spouse-node" onclick="showModal('${s.id}')">💍 ${s.name}</div>
                             ${buildChildrenUI(s.id)} 
                          </div>`;
             });
 
-            html += `</div>`;
-            
-            // Anak tanpa pasangan (jika ada data lama atau kasus khusus)
-            const soloChildren = db.filter(d => d.parentId === node.id && !d.isSpouse && !db.find(s => s.id === d.parentSpouseId));
-            if(soloChildren.length > 0) {
-                html += `<ul>${soloChildren.map(c => buildTree(c)).join('')}</ul>`;
-            }
-
-            html += `</li>`;
+            html += `</div></li>`;
             return html;
         }
 
@@ -214,12 +171,8 @@
             const n = db.find(d => d.id === id);
             document.getElementById('m-id').value = id;
             document.getElementById('m-name').value = n.name;
-            document.getElementById('m-title').innerText = n.isSpouse ? "Edit Pasangan" : "Edit Anggota";
-            
-            // Sembunyikan tombol tambah pasangan jika yang diklik adalah orang yang statusnya sudah pasangan
             document.getElementById('btn-add-spouse').style.display = n.isSpouse ? 'none' : 'inline-block';
             document.getElementById('btn-add-child').style.display = n.isSpouse ? 'inline-block' : 'none';
-            
             document.getElementById('modal').style.display = 'flex';
         }
 
@@ -233,33 +186,20 @@
 
         function addSpouse() {
             const bossId = document.getElementById('m-id').value;
-            const n = prompt("Nama Istri/Suami:");
-            if(n) {
-                db.push({id: "s"+Date.now(), name: n, isSpouse: true, spouseOf: bossId});
-                save(); closeModal();
-            }
+            const n = prompt("Nama Pasangan:");
+            if(n) { db.push({id: "s"+Date.now(), name: n, isSpouse: true, spouseOf: bossId}); save(); closeModal(); }
         }
 
         function addChild() {
-            const spouseId = document.getElementById('m-id').value; // Klik dari kotak pasangan
+            const spouseId = document.getElementById('m-id').value;
             const spouseNode = db.find(d => d.id === spouseId);
             const n = prompt("Nama Anak:");
-            if(n) {
-                db.push({
-                    id: "n"+Date.now(), 
-                    name: n, 
-                    parentId: spouseNode.spouseOf, 
-                    parentSpouseId: spouseId, 
-                    isSpouse: false
-                });
-                save(); closeModal();
-            }
+            if(n) { db.push({ id: "n"+Date.now(), name: n, parentId: spouseNode.spouseOf, parentSpouseId: spouseId, isSpouse: false }); save(); closeModal(); }
         }
 
         function hapusNode() {
-            if(confirm("Hapus data ini? (Anak-anaknya juga akan terhapus)")) {
+            if(confirm("Hapus data ini beserta keturunannya?")) {
                 const id = document.getElementById('m-id').value;
-                // Simple recursive delete
                 const toDel = [id];
                 const collect = (pId) => {
                     db.filter(d => d.parentId === pId || d.parentSpouseId === pId || d.spouseOf === pId).forEach(c => {
