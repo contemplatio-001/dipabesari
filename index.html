@@ -2,297 +2,350 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Nasab Pro V21 - Absolute Precision</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pohon Nasab Keluarga</title>
     <style>
-        :root { 
-            --line-color: #000000; 
-            --line-w: 4px; 
-            --bg-card: #ffffff;
-            --blue-navy: #1e3a8a;
+        /* === TEMA DOMINAN BIRU === */
+        :root {
+            --primary-blue: #0056b3;
+            --light-blue: #e7f1ff;
+            --bg-blue: #f0f8ff;
+            --text-blue: #003d82;
+            --white: #ffffff;
+            --danger: #dc3545;
         }
-        body { background: #fdfdfd; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
 
-        /* --- LOGIN SCREEN --- */
-        #login-screen { position: fixed; inset: 0; background: var(--blue-navy); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; width: 350px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }
-
-        /* --- APP LAYOUT --- */
-        #app { display: none; }
-        .viewport { padding: 100px; display: inline-block; min-width: 100%; text-align: center; }
-
-        /* --- THE CORE ENGINE (TABLE BASED) --- */
-        table { border-collapse: collapse; margin: 0 auto; position: relative; }
-        td { vertical-align: top; padding: 0; position: relative; text-align: center; }
-
-        /* KARTU NAMA */
-        .card-node { 
-            display: inline-block; width: 180px; padding: 15px; 
-            border: var(--line-w) solid var(--line-color); 
-            background: var(--bg-card); font-weight: bold; font-size: 14px;
-            position: relative; z-index: 10; margin: 0 5px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-blue);
+            color: var(--text-blue);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        .card-menantu { background: #f1f5f9; border-style: dashed; }
 
-        /* GARIS PERNIKAHAN (Ayah-Ibu) */
-        .marriage-bridge { height: var(--line-w); background: var(--line-color); width: 60px; display: inline-block; vertical-align: middle; position: relative; }
+        /* === HALAMAN LOGIN === */
+        #login-container {
+            margin-top: 15vh;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 86, 179, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+        #login-container h2 { margin-top: 0; color: var(--primary-blue); }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input { 
+            width: 100%; padding: 8px; border: 1px solid var(--primary-blue); 
+            border-radius: 4px; box-sizing: border-box; 
+        }
         
-        /* GARIS TURUN (Pusat Keturunan) */
-        .stem-down { 
-            position: absolute; left: 50%; top: 0; width: var(--line-w); 
-            height: 60px; background: var(--line-color); transform: translateX(-50%); 
+        button {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #004494; }
+        button.danger { background-color: var(--danger); }
+        button.danger:hover { background-color: #bd2130; }
+
+        /* === HALAMAN UTAMA (POHON NASAB) === */
+        #app-container { display: none; width: 100%; text-align: center; }
+        header {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tree-wrapper {
+            width: 95%;
+            margin: 20px auto;
+            overflow-x: auto;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 86, 179, 0.1);
+            min-height: 60vh;
         }
 
-        /* GARIS SAUDARA (Horizontal) */
-        .sibling-line-cell { height: 60px; }
-        .line-left { position: absolute; top: 0; left: 0; width: 50%; height: var(--line-w); background: var(--line-color); }
-        .line-right { position: absolute; top: 0; right: 0; width: 50%; height: var(--line-w); background: var(--line-color); }
-        .line-up-siku { position: absolute; top: 0; left: 50%; width: var(--line-w); height: 30px; background: var(--line-color); transform: translateX(-50%); }
-
-        /* UI BUTTONS */
-        .menu-trigger { position: absolute; top: 5px; right: 8px; cursor: pointer; color: #94a3b8; }
-        .drop-menu { 
-            display: none; position: absolute; top: 30px; right: 0; background: white; 
-            border: 2px solid black; z-index: 100; width: 150px; text-align: left;
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+        /* === CSS TREE (BAGAN) === */
+        .tree ul {
+            padding-top: 20px; position: relative;
+            transition: all 0.5s;
+            display: flex; justify-content: center;
         }
-        .drop-menu button { display: block; width: 100%; padding: 10px; font-size: 12px; border-bottom: 1px solid #eee; font-weight: bold; }
-        .drop-menu button:hover { background: var(--blue-navy); color: white; }
-        .show { display: block; }
 
-        nav { background: var(--blue-navy); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; }
+        .tree li {
+            float: left; text-align: center;
+            list-style-type: none; position: relative;
+            padding: 20px 5px 0 5px;
+        }
+
+        /* Garis penghubung atas */
+        .tree li::before, .tree li::after {
+            content: ''; position: absolute; top: 0; right: 50%;
+            border-top: 2px solid var(--primary-blue);
+            width: 50%; height: 20px;
+        }
+        .tree li::after { right: auto; left: 50%; border-left: 2px solid var(--primary-blue); }
+
+        /* Hapus garis untuk anak tunggal */
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child { padding-top: 0; }
+
+        /* Hapus garis ekstra pada anak pertama dan terakhir */
+        .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+        .tree li:last-child::before { border-right: 2px solid var(--primary-blue); border-radius: 0 5px 0 0; }
+        .tree li:first-child::after { border-radius: 5px 0 0 0; }
+
+        /* Garis turun ke anak */
+        .tree ul ul::before {
+            content: ''; position: absolute; top: 0; left: 50%;
+            border-left: 2px solid var(--primary-blue);
+            width: 0; height: 20px;
+        }
+
+        /* Kotak Nama */
+        .tree li a {
+            border: 2px solid var(--primary-blue);
+            padding: 10px 15px;
+            text-decoration: none;
+            color: var(--primary-blue);
+            font-weight: bold;
+            display: inline-block;
+            border-radius: 5px;
+            background: var(--light-blue);
+            transition: all 0.3s;
+        }
+        .tree li a:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* === MODAL (POPUP AKSI) === */
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--white);
+            padding: 20px; border-radius: 8px; width: 320px;
+            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content input {
+            width: 90%; padding: 8px; margin-bottom: 15px;
+            border: 1px solid var(--primary-blue); border-radius: 4px;
+        }
+        .modal-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .modal-actions button { flex: 1 1 40%; font-size: 12px; }
+        
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-card">
-        <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-blue-900">Admin Login</h2>
-        <input type="text" id="user" placeholder="Username" class="w-full p-3 mb-3 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500">
-        <input type="password" id="pass" placeholder="Password" class="w-full p-3 mb-6 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500">
-        <button onclick="login()" class="w-full bg-blue-900 text-white font-bold py-3 rounded-lg hover:bg-black transition">MASUK</button>
+    <div id="login-container">
+        <h2>Pohon Nasab</h2>
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Masukkan username">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Masukkan password">
+        </div>
+        <p id="login-error" style="color: red; font-size: 12px; display: none;">Username atau Password salah!</p>
+        <button onclick="login()">Masuk</button>
     </div>
-</div>
 
-<div id="app">
-    <nav>
-        <div class="font-black text-xl italic tracking-tighter">NASAB PRO V21</div>
-        <div class="flex gap-4">
-            <button onclick="exportData()" class="text-xs font-bold bg-white text-blue-900 px-4 py-2 rounded">SIMPAN CADANGAN</button>
-            <button onclick="importData()" class="text-xs font-bold bg-blue-700 px-4 py-2 rounded border border-white">BUKA FILE</button>
-            <button onclick="location.reload()" class="text-xs font-bold bg-red-600 px-4 py-2 rounded">LOGOUT</button>
-        </div>
-    </nav>
-    <div class="viewport" id="tree-container"></div>
-</div>
+    <div id="app-container">
+        <header>
+            <h2 style="margin: 0;">Pohon Nasab Keluarga</h2>
+            <button onclick="logout()" style="background-color: white; color: var(--primary-blue);">Keluar</button>
+        </header>
 
-<div id="modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[2000]">
-    <div class="bg-white p-8 border-4 border-black w-96 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]">
-        <h3 class="font-black text-xl border-b-4 border-black mb-6 pb-2 uppercase">Input Nasab</h3>
-        <input type="text" id="m-name" placeholder="Nama Lengkap" class="w-full border-2 border-black p-3 mb-3 font-bold outline-none">
-        <input type="text" id="m-note" placeholder="Tahun Lahir / Lokasi" class="w-full border-2 border-black p-3 mb-6 outline-none">
-        <div id="rel-box" class="hidden mb-6">
-            <label class="text-xs font-black text-blue-700 uppercase">Anak Dari Ibu:</label>
-            <select id="m-rel" class="w-full border-2 border-black p-2 font-bold"></select>
-        </div>
-        <div class="flex justify-end gap-4">
-            <button onclick="closeModal()" class="font-bold text-sm">BATAL</button>
-            <button onclick="save()" class="bg-black text-white px-8 py-3 font-bold text-sm">SIMPAN DATA</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    let db = JSON.parse(localStorage.getItem('nasab_v21')) || {
-        id: "root", name: "AYAH UTAMA", note: "Pancer", partners: [], children: []
-    };
-    let activeNode = null;
-
-    function login() {
-        if(document.getElementById('user').value === 'Admin' && document.getElementById('pass').value === 'Admin') {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            render();
-        }
-    }
-
-    function render() {
-        const container = document.getElementById('tree-container');
-        container.innerHTML = '';
-        container.appendChild(drawNode(db));
-    }
-
-    function drawNode(person) {
-        const table = document.createElement('table');
-        
-        // 1. Baris Orang Tua
-        const tr1 = document.createElement('tr');
-        const td1 = document.createElement('td');
-        td1.colSpan = Math.max(1, person.children.length);
-        
-        const parentFlex = document.createElement('div');
-        parentFlex.style.display = 'inline-flex';
-        parentFlex.style.alignItems = 'center';
-        parentFlex.appendChild(createCard(person, false));
-
-        person.partners.forEach((p, i) => {
-            const bridge = document.createElement('div');
-            bridge.className = "marriage-bridge";
+        <div class="tree-wrapper">
+            <div id="tree-render" class="tree">
+                </div>
             
-            // Stem down tepat di tengah jembatan nikah jika punya anak
-            if(person.children.some(c => c.fromId === p.id)) {
-                const stem = document.createElement('div');
-                stem.className = "stem-down";
-                bridge.appendChild(stem);
+            <div id="empty-state" style="display: none; padding: 40px;">
+                <p>Pohon nasab masih kosong.</p>
+                <button onclick="addRoot()">Buat Leluhur Pertama</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="action-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" style="color: var(--primary-blue); margin-top: 0;">Aksi Anggota Keluarga</h3>
+            <input type="hidden" id="currentNodeId">
+            <input type="text" id="nodeName" placeholder="Nama Anggota">
+            <div class="modal-actions">
+                <button onclick="saveEdit()">Simpan Nama</button>
+                <button onclick="addChild()">+ Tambah Anak</button>
+                <button class="danger" onclick="deleteNode()">Hapus Data</button>
+                <button onclick="closeModal()" style="background-color: #6c757d;">Batal</button>
+            </div>
+            <p style="font-size: 11px; color: gray; margin-top: 15px;">*Menghapus data juga akan menghapus semua keturunannya.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SISTEM LOGIN ---
+        function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            
+            if (user === 'Bismillah' && pass === 'Bismillah') {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                document.getElementById('login-error').style.display = 'none';
+                renderTree();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
             }
-            
-            parentFlex.appendChild(bridge);
-            parentFlex.appendChild(createCard(p, true, person.id));
-        });
-
-        // Jika anak solo (tanpa pasangan)
-        if(person.partners.length === 0 && person.children.length > 0) {
-            const soloStem = document.createElement('div');
-            soloStem.className = "stem-down";
-            soloStem.style.top = "45px"; 
-            parentFlex.appendChild(soloStem);
         }
 
-        td1.appendChild(parentFlex);
-        tr1.appendChild(td1);
-        table.appendChild(tr1);
+        function logout() {
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+        }
 
-        // 2. Baris Garis Saudara (Horizontal)
-        if(person.children.length > 0) {
-            const trLine = document.createElement('tr');
-            person.children.forEach((c, idx) => {
-                const tdLine = document.createElement('td');
-                tdLine.className = "sibling-line-cell";
-                
-                // Sambungan Horizontal
-                if(person.children.length > 1) {
-                    if(idx > 0) { const left = document.createElement('div'); left.className = "line-left"; tdLine.appendChild(left); }
-                    if(idx < person.children.length - 1) { const right = document.createElement('div'); right.className = "line-right"; tdLine.appendChild(right); }
+        // --- 2. MANAJEMEN DATA (Local Storage) ---
+        // Format Data: [{ id: 1, name: "Nama", parentId: null }]
+        let familyData = JSON.parse(localStorage.getItem('nasabData')) || [];
+
+        function saveData() {
+            localStorage.setItem('nasabData', JSON.stringify(familyData));
+            renderTree();
+        }
+
+        // --- 3. RENDER POHON NASAB ---
+        function renderTree() {
+            const treeContainer = document.getElementById('tree-render');
+            const emptyState = document.getElementById('empty-state');
+
+            if (familyData.length === 0) {
+                treeContainer.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            
+            // Mencari node utama (yang tidak memiliki orang tua)
+            const rootNodes = familyData.filter(d => d.parentId === null);
+            let html = '<ul>';
+            rootNodes.forEach(root => {
+                html += `<li><a href="#" onclick="openModal(${root.id})">${root.name}</a>${buildChildrenHTML(root.id)}</li>`;
+            });
+            html += '</ul>';
+
+            treeContainer.innerHTML = html;
+        }
+
+        function buildChildrenHTML(parentId) {
+            const children = familyData.filter(d => d.parentId === parentId);
+            if (children.length === 0) return '';
+            
+            let html = '<ul>';
+            children.forEach(child => {
+                html += `<li>
+                    <a href="#" onclick="openModal(${child.id})">${child.name}</a>
+                    ${buildChildrenHTML(child.id)}
+                </li>`;
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        // --- 4. SISTEM CRUD (Tambah, Edit, Hapus) ---
+        function addRoot() {
+            const name = prompt("Masukkan nama leluhur pertama:");
+            if (name) {
+                familyData.push({ id: Date.now(), name: name, parentId: null });
+                saveData();
+            }
+        }
+
+        function openModal(id) {
+            const node = familyData.find(d => d.id === id);
+            if (node) {
+                document.getElementById('currentNodeId').value = id;
+                document.getElementById('nodeName').value = node.name;
+                document.getElementById('action-modal').style.display = 'flex';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('action-modal').style.display = 'none';
+        }
+
+        function saveEdit() {
+            const id = parseInt(document.getElementById('currentNodeId').value);
+            const newName = document.getElementById('nodeName').value;
+            
+            if (newName.trim() === '') return alert('Nama tidak boleh kosong');
+
+            const nodeIndex = familyData.findIndex(d => d.id === id);
+            if (nodeIndex > -1) {
+                familyData[nodeIndex].name = newName;
+                saveData();
+                closeModal();
+            }
+        }
+
+        function addChild() {
+            const parentId = parseInt(document.getElementById('currentNodeId').value);
+            const childName = prompt("Masukkan nama anak:");
+            
+            if (childName && childName.trim() !== '') {
+                familyData.push({ id: Date.now(), name: childName, parentId: parentId });
+                saveData();
+                closeModal();
+            }
+        }
+
+        function deleteNode() {
+            const id = parseInt(document.getElementById('currentNodeId').value);
+            const confirmDelete = confirm("Yakin ingin menghapus anggota ini dan SELURUH keturunannya?");
+            
+            if (confirmDelete) {
+                // Fungsi rekursif untuk menghapus anak-anaknya juga
+                function removeChildren(parentId) {
+                    const children = familyData.filter(d => d.parentId === parentId);
+                    children.forEach(child => {
+                        removeChildren(child.id); // Hapus cucu dst
+                        familyData = familyData.filter(d => d.id !== child.id);
+                    });
                 }
                 
-                // Siku Vertikal ke Atas
-                const siku = document.createElement('div');
-                siku.className = "line-up-siku";
-                tdLine.appendChild(siku);
+                removeChildren(id);
+                familyData = familyData.filter(d => d.id !== id); // Hapus node yang dipilih
                 
-                trLine.appendChild(tdLine);
-            });
-            table.appendChild(trLine);
-
-            // 3. Baris Kartu Anak
-            const trChildren = document.createElement('tr');
-            person.children.forEach(c => {
-                const tdChild = document.createElement('td');
-                tdChild.appendChild(drawNode(c));
-                trChildren.appendChild(tdChild);
-            });
-            table.appendChild(trChildren);
-        }
-
-        return table;
-    }
-
-    function createCard(p, isP, pId) {
-        const div = document.createElement('div');
-        div.className = `card-node ${isP ? 'card-menantu' : ''}`;
-        div.innerHTML = `
-            <span class="menu-trigger" onclick="toggleMenu(event)">⋮</span>
-            <div class="drop-menu">
-                <button onclick="openForm('edit', '${p.id}', '${isP?pId:''}')">✏️ EDIT DATA</button>
-                ${!isP ? `<button onclick="openForm('child', '${p.id}')">👶 TAMBAH ANAK</button><button onclick="openForm('partner', '${p.id}')">💍 TAMBAH PASANGAN</button>` : ''}
-                <button onclick="del('${p.id}', ${isP}, '${pId}')" style="color:red">🗑️ HAPUS</button>
-            </div>
-            <div class="uppercase">${p.name}</div>
-            <div class="text-[10px] font-normal text-gray-500 mt-1">${p.note || ''}</div>
-        `;
-        return div;
-    }
-
-    // --- LOGIC FUNCTIONS ---
-    function toggleMenu(e) {
-        e.stopPropagation();
-        document.querySelectorAll('.drop-menu').forEach(d => d.classList.remove('show'));
-        e.target.nextElementSibling.classList.add('show');
-    }
-    window.onclick = () => document.querySelectorAll('.drop-menu').forEach(d => d.classList.remove('show'));
-
-    function openForm(type, id, pId) {
-        activeNode = { type, id, pId };
-        const box = document.getElementById('rel-box');
-        const sel = document.getElementById('m-rel');
-        box.classList.add('hidden');
-        if(type === 'child') {
-            const n = find(db, id);
-            if(n.partners.length > 0) {
-                box.classList.remove('hidden');
-                sel.innerHTML = `<option value="${n.id}">Utama (Tanpa Pasangan)</option>`;
-                n.partners.forEach(p => sel.add(new Option(p.name, p.id)));
+                saveData();
+                closeModal();
             }
         }
-        const curr = find(db, id, pId);
-        document.getElementById('m-name').value = type === 'edit' ? curr.name : '';
-        document.getElementById('m-note').value = type === 'edit' ? curr.note : '';
-        document.getElementById('modal').classList.remove('hidden');
-    }
-
-    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-
-    function save() {
-        const name = document.getElementById('m-name').value;
-        const note = document.getElementById('m-note').value;
-        const fid = document.getElementById('m-rel').value;
-        if(!name) return;
-        if(activeNode.type === 'edit') {
-            const n = find(db, activeNode.id, activeNode.pId);
-            n.name = name; n.note = note;
-        } else if(activeNode.type === 'child') {
-            find(db, activeNode.id).children.push({ id: Date.now().toString(), name, note, partners: [], children: [], fromId: fid });
-        } else {
-            find(db, activeNode.id).partners.push({ id: Date.now().toString(), name, note });
-        }
-        localStorage.setItem('nasab_v21', JSON.stringify(db));
-        render(); closeModal();
-    }
-
-    function find(root, id, pId) {
-        if(pId) return find(db, pId).partners.find(x => x.id === id);
-        if(root.id === id) return root;
-        for(let c of root.children) { let r = find(c, id); if(r) return r; }
-        return null;
-    }
-
-    function del(id, isP, pId) {
-        if(id === 'root' || !confirm("Hapus?")) return;
-        if(isP) { const p = find(db, pId); p.partners = p.partners.filter(x => x.id !== id); }
-        else { removeNode(db, id); }
-        localStorage.setItem('nasab_v21', JSON.stringify(db));
-        render();
-    }
-
-    function removeNode(n, id) {
-        n.children = n.children.filter(c => c.id !== id);
-        n.children.forEach(c => removeNode(c, id));
-    }
-
-    function exportData() {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:"application/json"}));
-        a.download = "nasab_backup.json"; a.click();
-    }
-
-    function importData() {
-        const i = document.createElement('input'); i.type = 'file';
-        i.onchange = e => {
-            const r = new FileReader(); r.readAsText(e.target.files[0]);
-            r.onload = () => { db = JSON.parse(r.result); localStorage.setItem('nasab_v21', JSON.stringify(db)); render(); }
-        };
-        i.click();
-    }
-</script>
+    </script>
 </body>
 </html>
