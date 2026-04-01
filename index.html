@@ -4,93 +4,88 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Family Tree Blue UI</title>
+<title>Family Tree</title>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
 <style>
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    font-family: Arial, sans-serif;
+    background: #e3f2fd;
 }
 
 /* HEADER */
 header {
-    background: linear-gradient(90deg, #1565c0, #42a5f5);
+    background: #1565c0;
     color: white;
     padding: 15px;
     text-align: center;
     font-size: 20px;
+    font-weight: bold;
 }
 
 /* CONTAINER */
 #tree-container {
     width: 100%;
-    height: 85vh;
+    height: 80vh;
     overflow: auto;
+    background: white;
 }
 
 /* SVG */
 svg {
-    min-width: 1800px;
+    min-width: 1600px;
 }
 
 /* GARIS */
 line {
-    stroke: #64b5f6;
+    stroke: #1976d2;
     stroke-width: 2;
 }
 
 /* NODE */
 .node rect {
-    fill: white;
-    stroke: #2196f3;
+    fill: #ffffff;
+    stroke: #1565c0;
     stroke-width: 2;
-    rx: 15;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+    rx: 10;
 }
 
 .node text {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
-    fill: #0d47a1;
+    fill: #000; /* 🔥 FIX biar selalu kebaca */
 }
 
 /* MENU */
 .menu {
-    position: absolute;
+    position: fixed; /* 🔥 FIX biar tidak ketutup */
     background: white;
-    border-radius: 12px;
+    border: 2px solid #1565c0;
+    border-radius: 10px;
     padding: 10px;
     display: none;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    z-index: 999;
+    z-index: 9999;
 }
 
 .menu button {
     display: block;
     width: 100%;
     margin: 5px 0;
-    padding: 8px;
+    padding: 10px;
     border: none;
-    background: linear-gradient(90deg, #1565c0, #42a5f5);
+    background: #1565c0;
     color: white;
+    font-weight: bold;
     border-radius: 6px;
-    cursor: pointer;
-}
-
-.menu button:hover {
-    background: linear-gradient(90deg, #0d47a1, #1976d2);
 }
 </style>
 </head>
 
 <body>
 
-<header>
-    🌳 Family Tree Profesional
-</header>
+<header>🌳 Family Tree</header>
 
 <div id="tree-container">
     <div id="tree"></div>
@@ -98,8 +93,7 @@ line {
 
 <div id="menu" class="menu">
     <button onclick="editNode()">✏️ Edit</button>
-    <button onclick="addHusband()">👨 Tambah Suami</button>
-    <button onclick="addWife()">👩 Tambah Istri</button>
+    <button onclick="addSpouse()">👩 Tambah Pasangan</button>
     <button onclick="addChild()">👶 Tambah Anak</button>
     <button onclick="deleteNode()">❌ Hapus</button>
     <button onclick="saveData()">💾 Simpan</button>
@@ -110,80 +104,70 @@ line {
 // DATA
 let data = JSON.parse(localStorage.getItem("tree")) || {
     name: "Ki. Adam",
-    gender: "M",
-    spouses: [
-        { name: "Ny. Agami", gender: "F", children: [] }
-    ]
+    spouses: [{ name: "Ny. Agami", children: [] }]
 };
 
 let selected = null;
 
 // BUILD
-function buildNodes(person, depth = 0, x = 900, nodes = [], links = []) {
+function build(person, depth=0, x=800, nodes=[], links=[]){
 
-    const spaceX = 260;
-    const spaceY = 150;
+    const sx = 250;
+    const sy = 140;
 
-    nodes.push({ name: person.name, x, y: depth * spaceY, ref: person });
+    nodes.push({name: person.name, x, y: depth*sy, ref: person});
 
-    if(person.spouses){
-        person.spouses.forEach((spouse, i) => {
+    person.spouses.forEach((sp,i)=>{
+        const px = x + (i+1)*sx;
 
-            const sx = person.gender === "M"
-                ? x + (i + 1) * spaceX
-                : x - (i + 1) * spaceX;
+        nodes.push({name: sp.name, x:px, y:depth*sy, ref: sp});
 
-            nodes.push({ name: spouse.name, x: sx, y: depth * spaceY, ref: spouse });
+        links.push({x1:x,y1:depth*sy,x2:px,y2:depth*sy});
 
-            links.push({ x1: x, y1: depth * spaceY, x2: sx, y2: depth * spaceY });
+        sp.children.forEach((c,j)=>{
+            const cx = px - 80 + j*160;
 
-            spouse.children.forEach((child, idx) => {
+            nodes.push({name:c.name,x:cx,y:(depth+1)*sy,ref:c});
+            links.push({x1:px,y1:depth*sy,x2:cx,y2:(depth+1)*sy});
 
-                const cx = sx - 80 + idx * 160;
-
-                nodes.push({ name: child.name, x: cx, y: (depth + 1) * spaceY, ref: child });
-
-                links.push({ x1: sx, y1: depth * spaceY, x2: cx, y2: (depth + 1) * spaceY });
-
-                buildNodes(child, depth + 2, cx, nodes, links);
-            });
+            build(c, depth+2, cx, nodes, links);
         });
-    }
+    });
 
-    return {nodes, links};
+    return {nodes,links};
 }
 
 // DRAW
 function draw(){
 
-    document.getElementById("tree").innerHTML = "";
+    document.getElementById("tree").innerHTML="";
 
     const svg = d3.select("#tree")
         .append("svg")
-        .attr("width", 2000)
-        .attr("height", 1200);
+        .attr("width",1800)
+        .attr("height",1000);
 
-    const graph = buildNodes(data);
+    const g = build(data);
 
     svg.selectAll("line")
-        .data(graph.links)
+        .data(g.links)
         .enter()
         .append("line")
-        .attr("x1", d=>d.x1)
-        .attr("y1", d=>d.y1)
-        .attr("x2", d=>d.x2)
-        .attr("y2", d=>d.y2);
+        .attr("x1",d=>d.x1)
+        .attr("y1",d=>d.y1)
+        .attr("x2",d=>d.x2)
+        .attr("y2",d=>d.y2);
 
     const node = svg.selectAll("g")
-        .data(graph.nodes)
+        .data(g.nodes)
         .enter()
         .append("g")
-        .attr("transform", d=>`translate(${d.x},${d.y})`);
+        .attr("transform",d=>`translate(${d.x},${d.y})`);
 
     node.append("rect")
-        .attr("width",160)
+        .attr("width",150)
         .attr("height",60)
-        .attr("x",-80)
+        .attr("x",-75)
         .attr("y",-30);
 
     node.append("text")
@@ -191,43 +175,34 @@ function draw(){
         .attr("dy",5)
         .text(d=>d.name);
 
-    node.on("click",(event,d)=>{
+    node.on("click",(e,d)=>{
         selected = d.ref;
 
         const menu = document.getElementById("menu");
-        menu.style.left = event.pageX+"px";
-        menu.style.top = event.pageY+"px";
-        menu.style.display="block";
+        menu.style.left = e.clientX + "px";
+        menu.style.top = e.clientY + "px";
+        menu.style.display = "block";
 
-        event.stopPropagation();
+        e.stopPropagation();
     });
 
-    document.body.onclick=()=>{
+    document.body.onclick = ()=>{
         document.getElementById("menu").style.display="none";
     }
 }
 
-// MENU ACTION
+// MENU
 function editNode(){
     const n = prompt("Nama:");
     if(n){ selected.name=n; draw(); }
 }
 
-function addHusband(){
-    if(!selected.spouses) selected.spouses = [];
-    const n = prompt("Nama suami:");
+function addSpouse(){
+    if(!selected.spouses) selected.spouses=[];
+    const n = prompt("Nama pasangan:");
     if(!n) return;
 
-    selected.spouses.push({name:n, gender:"M", children:[]});
-    draw();
-}
-
-function addWife(){
-    if(!selected.spouses) selected.spouses = [];
-    const n = prompt("Nama istri:");
-    if(!n) return;
-
-    selected.spouses.push({name:n, gender:"F", children:[]});
+    selected.spouses.push({name:n,children:[]});
     draw();
 }
 
@@ -240,17 +215,18 @@ function addChild(){
     const n = prompt("Nama anak:");
     if(!n) return;
 
-    selected.children.push({name:n, gender:"M", spouses:[]});
+    selected.children.push({name:n,spouses:[]});
     draw();
 }
 
 function deleteNode(){
-    alert("Hapus akan disempurnakan di versi berikutnya");
+    alert("Fitur hapus akan disempurnakan");
 }
 
+// 🔥 SIMPAN FIX
 function saveData(){
     localStorage.setItem("tree", JSON.stringify(data));
-    alert("Data tersimpan!");
+    alert("Data berhasil disimpan!");
 }
 
 // INIT
