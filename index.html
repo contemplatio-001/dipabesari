@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <title>Family Tree</title>
 
@@ -18,21 +18,25 @@ body {
 header {
     background: #1565c0;
     color: white;
-    padding: 15px;
+    padding: 12px;
     text-align: center;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
 }
 
+/* container */
 #tree-container {
     width: 100%;
     height: 80vh;
-    overflow: auto;
+    overflow: hidden;
     background: white;
+    touch-action: none; /* 🔥 penting untuk drag */
 }
 
+/* svg */
 svg {
-    min-width: 1600px;
+    width: 100%;
+    height: 100%;
 }
 
 /* garis */
@@ -41,20 +45,19 @@ line {
     stroke-width: 2;
 }
 
-/* kotak */
+/* node */
 .node rect {
-    fill: #ffffff;
+    fill: white;
     stroke: #1565c0;
     stroke-width: 2;
     rx: 12;
 }
 
-/* teks SUPER JELAS */
 .node text {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 900;
-    fill: #000000;
-    stroke: #ffffff;
+    fill: black;
+    stroke: white;
     stroke-width: 3px;
     paint-order: stroke;
     pointer-events: none;
@@ -90,14 +93,14 @@ line {
 <header>🌳 Family Tree</header>
 
 <div id="tree-container">
-    <div id="tree"></div>
+    <svg id="svg"></svg>
 </div>
 
 <div id="menu" class="menu">
     <button onclick="editNode()">✏️ Edit</button>
-    <button onclick="addHusband()">👨 Tambah Suami</button>
-    <button onclick="addWife()">👩 Tambah Istri</button>
-    <button onclick="addChild()">👶 Tambah Anak</button>
+    <button onclick="addHusband()">👨 Suami</button>
+    <button onclick="addWife()">👩 Istri</button>
+    <button onclick="addChild()">👶 Anak</button>
     <button onclick="deleteNode()">❌ Hapus</button>
     <button onclick="saveData()">💾 Simpan</button>
 </div>
@@ -108,14 +111,23 @@ line {
 let data = JSON.parse(localStorage.getItem("tree")) || {
     name: "Ki. Adam",
     gender: "M",
-    spouses: [
-        { name: "Ny. Agami", gender: "F", children: [] }
-    ]
+    spouses: [{ name: "Ny. Agami", gender: "F", children: [] }]
 };
 
 let selected = null;
 
-// BUILD TREE
+// ZOOM + DRAG
+const svg = d3.select("#svg");
+const g = svg.append("g");
+
+svg.call(d3.zoom()
+    .scaleExtent([0.5, 2])
+    .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+    })
+);
+
+// BUILD
 function build(person, depth=0, x=800, nodes=[], links=[]){
 
     const sx = 250;
@@ -151,17 +163,13 @@ function build(person, depth=0, x=800, nodes=[], links=[]){
 // DRAW
 function draw(){
 
-    document.getElementById("tree").innerHTML="";
+    g.selectAll("*").remove();
 
-    const svg = d3.select("#tree")
-        .append("svg")
-        .attr("width",1800)
-        .attr("height",1000);
+    const graph = build(data);
 
-    const g = build(data);
-
-    svg.selectAll("line")
-        .data(g.links)
+    // garis
+    g.selectAll("line")
+        .data(graph.links)
         .enter()
         .append("line")
         .attr("x1",d=>d.x1)
@@ -169,23 +177,22 @@ function draw(){
         .attr("x2",d=>d.x2)
         .attr("y2",d=>d.y2);
 
-    const node = svg.selectAll("g")
-        .data(g.nodes)
+    const node = g.selectAll("g.node")
+        .data(graph.nodes)
         .enter()
         .append("g")
         .attr("class","node")
         .attr("transform",d=>`translate(${d.x},${d.y})`);
 
     node.append("rect")
-        .attr("width",150)
+        .attr("width",140)
         .attr("height",60)
-        .attr("x",-75)
+        .attr("x",-70)
         .attr("y",-30);
 
     node.append("text")
         .attr("text-anchor","middle")
         .attr("dominant-baseline","middle")
-        .attr("y",0)
         .text(d=>d.name);
 
     node.on("click",(e,d)=>{
