@@ -3,15 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Tree Pro</title>
 
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<title>Family Tree</title>
+
+<!-- CDN STABIL -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
 <style>
 body {
     font-family: Arial;
     margin: 0;
-    background: #eef2f7;
+    background: #f4f6f9;
+    text-align: center;
+}
+
+h2 {
+    background: black;
+    color: white;
+    padding: 15px;
+    margin: 0;
 }
 
 #tree {
@@ -27,7 +37,7 @@ body {
     border-radius: 10px;
     padding: 10px;
     display: none;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 999;
 }
 
 .menu button {
@@ -39,37 +49,32 @@ body {
     background: black;
     color: white;
     border-radius: 5px;
-    cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<h2 style="text-align:center;">Family Tree Interaktif</h2>
+<h2>Family Tree Online</h2>
 
 <div id="tree"></div>
 
-<!-- MENU -->
 <div id="menu" class="menu">
-    <button onclick="editNode()">✏️ Edit</button>
-    <button onclick="addSpouseNode()">👩 Tambah Pasangan</button>
-    <button onclick="addChildNode()">👶 Tambah Anak</button>
-    <button onclick="deleteNode()">❌ Hapus</button>
+    <button onclick="editNode()">Edit</button>
+    <button onclick="addChild()">Tambah Anak</button>
+    <button onclick="deleteNode()">Hapus</button>
 </div>
 
 <script>
 
-// DATA
 let data = {
-    name: "Ki. Adam",
+    name: "Kepala Keluarga",
     children: []
 };
 
-let selectedNode = null;
+let selected = null;
 
-// DRAW TREE
-function drawTree() {
+function draw() {
 
     document.getElementById("tree").innerHTML = "";
 
@@ -82,11 +87,10 @@ function drawTree() {
         .attr("height", height);
 
     const root = d3.hierarchy(data);
-    const treeLayout = d3.tree().size([width - 50, height - 50]);
+    const tree = d3.tree().size([width - 50, height - 50]);
 
-    treeLayout(root);
+    tree(root);
 
-    // garis
     svg.selectAll("line")
         .data(root.links())
         .enter()
@@ -97,7 +101,6 @@ function drawTree() {
         .attr("y2", d => d.target.y)
         .attr("stroke", "black");
 
-    // node
     const node = svg.selectAll("g")
         .data(root.descendants())
         .enter()
@@ -110,81 +113,62 @@ function drawTree() {
         .attr("stroke", "black");
 
     node.append("text")
+        .text(d => d.data.name)
         .attr("text-anchor", "middle")
-        .attr("dy", 5)
-        .text(d => d.data.name);
+        .attr("dy", 5);
 
-    // klik node
     node.on("click", (event, d) => {
-        selectedNode = d.data;
+        selected = d.data;
 
         const menu = document.getElementById("menu");
         menu.style.left = event.pageX + "px";
         menu.style.top = event.pageY + "px";
         menu.style.display = "block";
+
+        event.stopPropagation();
     });
 
-    // klik luar = tutup menu
-    document.body.onclick = function(e){
-        if(!e.target.closest(".menu")){
-            document.getElementById("menu").style.display="none";
-        }
-    }
+    document.body.onclick = () => {
+        document.getElementById("menu").style.display = "none";
+    };
 }
 
-// EDIT
 function editNode(){
-    const n = prompt("Nama baru:", selectedNode.name);
+    const n = prompt("Nama:");
     if(n){
-        selectedNode.name = n;
-        drawTree();
+        selected.name = n;
+        draw();
     }
 }
 
-// TAMBAH ANAK
-function addChildNode(){
+function addChild(){
     const n = prompt("Nama anak:");
     if(!n) return;
 
-    if(!selectedNode.children) selectedNode.children = [];
-    selectedNode.children.push({name:n});
+    selected.children = selected.children || [];
+    selected.children.push({name:n});
 
-    drawTree();
+    draw();
 }
 
-// TAMBAH PASANGAN
-function addSpouseNode(){
-    const n = prompt("Nama pasangan:");
-    if(!n) return;
-
-    selectedNode.children = selectedNode.children || [];
-    selectedNode.children.push({name:"(Pasangan) " + n});
-
-    drawTree();
-}
-
-// HAPUS
 function deleteNode(){
 
     function remove(node, target){
         if(!node.children) return;
-
         node.children = node.children.filter(c => c !== target);
-
         node.children.forEach(c => remove(c, target));
     }
 
-    if(selectedNode === data){
+    if(selected === data){
         alert("Tidak bisa hapus root!");
         return;
     }
 
-    remove(data, selectedNode);
-    drawTree();
+    remove(data, selected);
+    draw();
 }
 
-// INIT
-drawTree();
+draw();
 
 </script>
 
