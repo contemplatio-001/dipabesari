@@ -3,365 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nasab Pro V18 - Secured Perfect Line</title>
+    <title>Nasab Pro V19 - Line Perfection</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --primary: #1e40af; /* Blue-800 */
-            --bg-app: #f1f5f9;
-            --line-color: #000; /* Hitam tegas sesuai gambar */
-            --line-weight: 3px;
+            --blue-navy: #1e3a8a;
+            --line-color: #000000;
+            --line-thick: 3px;
         }
-        body { background-color: var(--bg-app); font-family: 'Inter', sans-serif; overflow: hidden; }
+        body { background-color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
 
-        /* ====== 1. Halaman Login (Glassmorphism) ====== */
-        #login-screen { 
-            position: fixed; inset: 0; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); 
-            display: flex; align-items: center; justify-content: center; z-index: 5000; transition: all 0.5s ease;
-        }
-        .login-box { 
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px; 
-            padding: 50px; width: 400px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center;
-        }
-        .login-input { 
-            width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); 
-            padding: 15px 20px; border-radius: 15px; color: white; margin-bottom: 20px; outline: none; 
-        }
-        .login-input::placeholder { color: rgba(255, 255, 255, 0.5); }
-        .login-input:focus { border-color: white; background: rgba(255, 255, 255, 0.2); }
-        .login-btn { 
-            width: 100%; background: white; color: #1e3a8a; font-weight: 800; 
-            padding: 15px; border-radius: 15px; font-size: 14px; text-transform: uppercase; tracking-widest: 1px;
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2); transition: all 0.2s;
-        }
-        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3); }
-
-        /* ====== 2. UI Aplikasi Utama (Blue Theme) ====== */
-        #main-app { display: none; opacity: 0; transition: opacity 0.5s ease; }
-        .app-active { display: block !important; opacity: 1 !important; overflow: auto; height: 100vh; }
+        /* ====== LOGIN PAGE (STAYED) ====== */
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .login-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.2); width: 350px; text-align: center; color: white; }
         
-        .tree-container { padding: 120px 80px; display: inline-block; min-width: 100%; text-align: center; }
+        /* ====== APP STRUCTURE ====== */
+        #main-app { display: none; }
+        .tree-viewport { padding: 100px; display: inline-block; min-width: 100%; text-align: center; }
 
-        /* ====== 3. SISTEM GARIS ARSITEKTURAL (ZERO GAP) ====== */
-        
-        /* Satuan Keluarga (Tabel agar kunci di tengah) */
-        .family-table { border-collapse: collapse; margin: 0 auto; display: inline-table; vertical-align: top; margin: 0 50px; }
+        /* ====== THE LINE LOGIC (PERFECTED) ====== */
+        .family-unit { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; margin: 0 40px; position: relative; }
 
-        /* BARIS ORANG TUA */
-        .parents-row { display: table-row; }
-        .parent-cell { display: table-cell; vertical-align: middle; padding: 0; position: relative; }
+        /* Area Orang Tua & Pasangan */
+        .couple-container { display: flex; align-items: center; position: relative; padding-bottom: 50px; }
 
-        /* KARTU */
+        /* Kartu Nama */
         .card { 
-            width: 170px; padding: 16px; background: white; 
-            border: var(--line-weight) solid var(--line-color); 
-            border-radius: 16px; position: relative; z-index: 100; text-align: left;
-            box-shadow: 0 10px 15px -3px rgba(30, 64, 175, 0.1);
+            width: 160px; padding: 15px; background: white; border: var(--line-thick) solid var(--line-color); 
+            border-radius: 12px; z-index: 50; position: relative; font-weight: 800; text-transform: uppercase; font-size: 12px;
         }
-        .card-partner { border-color: #64748b; border-style: dashed; background: #f8fafc; }
+        .card-partner { background: #eff6ff; border-style: dashed; }
 
-        /* GARIS PERNIKAHAN (Marriage Bridge di sel tengah) */
-        .marriage-cell { display: table-cell; vertical-align: middle; padding: 0; position: relative; width: 60px; }
-        .marriage-line { 
-            height: var(--line-weight); background: var(--line-color); 
-            width: 100%; position: relative; z-index: 50; 
-        }
+        /* Garis Nikah (Horizontal antara Ayah-Ibu) */
+        .marriage-line { width: 40px; height: var(--line-thick); background: var(--line-color); flex-shrink: 0; position: relative; z-index: 10; }
 
-        /* GARIS JANGKAR TURUN KE ANAK (Stem Vertikal dari sel tengah) */
-        .child-stem-line { 
-            position: absolute; left: 50%; top: 50%; /* Mulai tepat di tengah marriage line */
-            width: var(--line-weight); height: 80px; background: var(--line-color); 
-            transform: translateX(-50%); z-index: 40;
+        /* Garis Turun dari Tengah Nikah (Garis Keturunan Utama) */
+        .line-down-main { 
+            position: absolute; left: 50%; top: 50%; width: var(--line-thick); 
+            height: 70px; background: var(--line-color); transform: translateX(-50%); z-index: 5;
         }
 
-        /* AREA ANAK-ANAK (Grup Horizontal di bawah) */
-        .children-row { display: table-row; }
-        .children-container { 
-            display: table-cell; colspan: 3; /* Melingkupi Ayah-Garis-Ibu */
-            padding-top: 80px; position: relative; text-align: center;
-        }
+        /* Container Anak-Anak */
+        .children-row { display: flex; justify-content: center; position: relative; padding-top: 20px; }
 
-        /* SISTEM GARIS SAUDARA (Perfect Junction) */
-        .child-node-wrap { display: inline-block; vertical-align: top; position: relative; padding: 0 25px; }
+        /* Sistem Garis Saudara (Horizontal yang menyambung) */
+        .child-node { position: relative; padding: 0 15px; }
 
-        /* Garis Horizontal Sambungan */
-        .child-node-wrap::before {
+        /* Garis Horizontal Penghubung Saudara */
+        .child-node::before {
             content: ""; position: absolute; top: 0; left: 0; right: 0;
-            height: var(--line-weight); background: var(--line-color);
+            height: var(--line-thick); background: var(--line-color);
         }
-        .child-node-wrap:first-child::before { left: 50%; }
-        .child-node-wrap:last-child::before { right: 50%; }
-        .child-node-wrap:only-child::before { display: none; }
+        /* Memotong ujung garis horizontal agar jadi siku */
+        .child-node:first-child::before { left: 50%; }
+        .child-node:last-child::before { right: 50%; }
+        .child-node:only-child::before { display: none; }
 
-        /* Garis Vertikal Penutup ke Kartu Anak */
-        .line-to-child-card {
-            position: absolute; top: 0; left: 50%;
-            width: var(--line-weight); height: 60px; background: var(--line-color);
-            transform: translateX(-50%);
+        /* Garis Siku Vertikal Menempel ke Kartu Anak */
+        .line-up-to-child {
+            position: absolute; top: 0; left: 50%; width: var(--line-thick);
+            height: 20px; background: var(--line-color); transform: translateX(-50%);
         }
 
-        /* UI TOOLKIT */
-        .badge-info { 
-            position: absolute; top: -14px; left: 14px; 
-            background: var(--primary); color: white; 
-            font-size: 9px; padding: 3px 10px; border-radius: 20px; font-weight: 800; z-index: 110; 
-        }
-        .menu-btn { cursor: pointer; float: right; color: #94a3b8; font-size: 20px; line-height: 1; margin-top: -5px; }
-        .dropdown { 
-            display: none; position: absolute; right: 0; top: 35px; 
-            background: white; border-radius: 12px; border: 1px solid #e2e8f0;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); z-index: 150; width: 190px; overflow: hidden;
-        }
-        .dropdown button { 
-            width: 100%; text-align: left; padding: 12px 18px; font-size: 13px; 
-            border-bottom: 1px solid #f1f5f9; color: #334155; font-weight: 600;
-        }
-        .dropdown button:hover { background: #eff6ff; color: var(--primary); }
+        /* UI Styling */
+        .btn-menu { cursor: pointer; float: right; color: #94a3b8; font-size: 18px; }
+        .dropdown { display: none; position: absolute; right: 0; top: 30px; background: white; border: 2px solid #000; z-index: 1000; width: 160px; text-align: left; box-shadow: 6px 6px 0px rgba(0,0,0,0.1); }
+        .dropdown button { width: 100%; padding: 10px; font-size: 11px; border-bottom: 1px solid #eee; font-weight: bold; }
+        .dropdown button:hover { background: var(--blue-navy); color: white; }
         .show { display: block; }
-
-        @media print { .no-print { display: none; } nav { display: none; } body { background: white; } }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <div class="login-box">
-        <div class="text-white text-5xl mb-6">🔒</div>
-        <h1 class="text-white text-3xl font-extrabold tracking-tighter mb-2">NASAB PRO</h1>
-        <p class="text-blue-100 text-sm mb-10 tracking-wide uppercase">Login to Access Genealogy</p>
-        <input type="text" id="username" placeholder="Username (Admin)" class="login-input">
-        <input type="password" id="password" placeholder="Password (Admin)" class="login-input">
-        <p id="login-error" class="text-red-300 text-xs mb-4 hidden">Username atau Password salah!</p>
-        <button onclick="handleLogin()" class="login-btn hover:shadow-2xl">Masuk Aplikasi</button>
+    <div class="login-card">
+        <h2 class="text-2xl font-black mb-6 tracking-tighter">NASAB LOGIN</h2>
+        <input type="text" id="user" placeholder="Admin" class="w-full p-3 mb-3 rounded-xl bg-white/10 border border-white/20 outline-none">
+        <input type="password" id="pass" placeholder="Admin" class="w-full p-3 mb-6 rounded-xl bg-white/10 border border-white/20 outline-none">
+        <button onclick="checkLogin()" class="w-full bg-white text-blue-900 font-bold py-3 rounded-xl hover:bg-blue-50 transition">MASUK</button>
+        <p id="err" class="text-red-300 text-xs mt-3 hidden">Salah! Gunakan Admin / Admin</p>
     </div>
 </div>
 
 <div id="main-app">
-    <nav class="bg-blue-950 text-white p-4 sticky top-0 z-[1000] flex justify-between items-center shadow-2xl border-b border-blue-800">
-        <div class="flex items-center gap-3">
-            <div class="bg-white p-2.5 rounded-2xl text-blue-950 text-xl font-black">🧬</div>
-            <div>
-                <h1 class="font-extrabold text-xl tracking-tighter leading-none">NASAB PRO</h1>
-                <p class="text-[10px] text-blue-300 font-bold tracking-widest uppercase">Secured Perfect Line Edition</p>
-            </div>
+    <nav class="bg-blue-900 text-white p-4 flex justify-between items-center border-b-4 border-black sticky top-0 z-[2000]">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">🧬</span>
+            <span class="font-black italic">NASAB PRO <small class="text-[10px] not-italic opacity-70">V19</small></span>
         </div>
         <div class="flex gap-2">
-            <button onclick="exportJSON()" class="bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold transition">Backup</button>
-            <button onclick="importJSON()" class="bg-white text-blue-950 px-4 py-2 rounded-xl text-xs font-bold transition">Restore</button>
-            <button onclick="logout()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-xs font-bold ml-4">Keluar</button>
+            <button onclick="exportData()" class="bg-blue-700 px-4 py-1 rounded-lg text-xs font-bold border border-white">SIMPAN FILE</button>
+            <button onclick="importData()" class="bg-white text-blue-900 px-4 py-1 rounded-lg text-xs font-bold">BUKA FILE</button>
+            <button onclick="location.reload()" class="bg-red-500 px-4 py-1 rounded-lg text-xs font-bold">KELUAR</button>
         </div>
     </nav>
 
-    <main>
-        <div class="tree-container" id="tree-root"></div>
-    </main>
+    <div class="tree-viewport" id="tree-root"></div>
+</div>
 
-    <div id="modal" class="fixed inset-0 bg-blue-950/60 hidden flex items-center justify-center z-[2000] backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-3xl w-full max-w-sm shadow-2xl border border-blue-100">
-            <h3 class="text-xl font-extrabold text-blue-900 mb-6 border-b-2 border-blue-100 pb-2 text-center uppercase tracking-wider">Input Data</h3>
-            <div class="space-y-4">
-                <input type="text" id="m-name" placeholder="Nama Lengkap" class="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 p-3 rounded-2xl outline-none transition">
-                <input type="text" id="m-note" placeholder="Keterangan (Tahun/Lokasi)" class="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 p-3 rounded-2xl outline-none transition text-sm">
-                <div id="rel-area" class="hidden">
-                    <label class="text-[10px] font-bold text-blue-500 uppercase ml-2 mb-1 block">Hubungkan Ke:</label>
-                    <select id="m-rel" class="w-full bg-blue-50 border-none p-3 rounded-2xl text-xs font-bold text-blue-900"></select>
-                </div>
-            </div>
-            <div class="flex flex-col gap-2 mt-8">
-                <button onclick="save()" class="bg-blue-700 text-white w-full py-4 rounded-2xl font-bold hover:bg-blue-800 shadow-xl shadow-blue-200 transition">SIMPAN DATA</button>
-                <button onclick="closeModal()" class="text-gray-400 text-sm font-bold py-2 hover:text-red-500">BATAL</button>
-            </div>
+<div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[3000] backdrop-blur-sm">
+    <div class="bg-white p-6 border-4 border-black w-80 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+        <h3 class="font-black border-b-2 border-black pb-2 mb-4 uppercase">Data Keluarga</h3>
+        <input type="text" id="m-name" placeholder="Nama" class="w-full border-2 border-black p-2 mb-2 outline-none focus:bg-blue-50">
+        <input type="text" id="m-note" placeholder="Catatan" class="w-full border-2 border-black p-2 mb-4 outline-none text-sm">
+        
+        <div id="rel-box" class="hidden mb-4">
+            <label class="text-[10px] font-bold text-blue-600 block mb-1">ANAK DARI PASANGAN:</label>
+            <select id="m-rel" class="w-full border-2 border-black p-2 text-xs font-bold"></select>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal()" class="font-bold text-xs">BATAL</button>
+            <button onclick="save()" class="bg-black text-white px-6 py-2 font-bold text-xs">SIMPAN</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ====== 1. SISTEM LOGIN ======
-    function handleLogin() {
-        const user = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
-        const error = document.getElementById('login-error');
+    let db = JSON.parse(localStorage.getItem('nasab_v19')) || {
+        id: "root", name: "Kepala Keluarga", note: "Pancer", partners: [], children: []
+    };
 
-        if (user === 'Admin' && pass === 'Admin') {
-            document.getElementById('login-screen').style.opacity = '0';
-            document.getElementById('login-screen').style.pointerEvents = 'none';
-            document.getElementById('main-app').classList.add('app-active');
-            render(); // Render pohon setelah login sukses
+    let activeNode = { type: '', id: '', pId: '' };
+
+    function checkLogin() {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
+        if(u === 'Admin' && p === 'Admin') {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            render();
         } else {
-            error.classList.remove('hidden');
+            document.getElementById('err').classList.remove('hidden');
         }
     }
 
-    function logout() { location.reload(); } // Cara termudah untuk logout
-
-    // ====== 2. SISTEM POHON NASAB ======
-    let nasabDB = JSON.parse(localStorage.getItem('nasab_pro_v18')) || {
-        id: "root", name: "Kepala Keluarga Pertama", note: "Pancer", partners: [], children: []
-    };
-
-    let activeCtx = { type: '', id: '', pId: '' };
-
     function render() {
         const root = document.getElementById('tree-root');
-        if (!document.getElementById('main-app').classList.contains('app-active')) return; // Jangan render jika belum login
         root.innerHTML = '';
-        root.appendChild(createFamilyTable(nasabDB));
+        root.appendChild(createFamilyUnit(db));
     }
 
-    function createFamilyTable(person) {
-        const table = document.createElement('table');
-        table.className = "family-table";
+    function createFamilyUnit(person) {
+        const unit = document.createElement('div');
+        unit.className = "family-unit";
 
-        // Grouping Anak berdasarkan pasangan
-        const childGroups = {};
-        person.children.forEach(c => {
-            const fid = c.fromId || person.id;
-            if(!childGroups[fid]) childGroups[fid] = [];
-            childGroups[fid].push(c);
-        });
+        // 1. Orang Tua
+        const couple = document.createElement('div');
+        couple.className = "couple-container";
+        couple.appendChild(drawCard(person, false));
 
-        // --- BARIS PERTAMA: Orang Tua ---
-        const pRow = document.createElement('tr');
-        pRow.className = "parents-row";
-
-        // Sel Ayah (Utama)
-        const fatherCell = document.createElement('td');
-        fatherCell.className = "parent-cell";
-        fatherCell.appendChild(createCard(person, false));
-        pRow.appendChild(fatherCell);
-
-        // Render Pasangan-pasangan
-        person.partners.forEach((partner, idx) => {
-            // Sel Garis Nikah (Selalu di tengah)
-            const marriageCell = document.createElement('td');
-            marriageCell.className = "marriage-cell";
+        person.partners.forEach((p, idx) => {
             const mLine = document.createElement('div');
             mLine.className = "marriage-line";
             
-            // LOGIKA ZERO GAP: Pasang Jangkar Vertikal tepat di sel nikah ini jika ada anak
-            if(childGroups[partner.id]) {
+            // Logika Garis Turun: Jika pasangan ini punya anak
+            const hasKids = person.children.some(c => c.fromId === p.id);
+            if(hasKids) {
                 const stem = document.createElement('div');
-                stem.className = "child-stem-line";
-                marriageCell.appendChild(stem);
+                stem.className = "line-down-main";
+                mLine.appendChild(stem);
             }
-            marriageCell.appendChild(mLine);
-            pRow.appendChild(marriageCell);
-
-            // Sel Ibu (Pasangan)
-            const motherCell = document.createElement('td');
-            motherCell.className = "parent-cell";
-            motherCell.appendChild(createCard(partner, true, person.id, idx + 1));
-            pRow.appendChild(motherCell);
-        });
-        table.appendChild(pRow);
-
-        // --- BARIS KEDUA: Anak-anak ---
-        // Kita loop melalui semua pasangan yang punya anak
-        Object.keys(childGroups).forEach((parentId, gIdx) => {
-            const kids = childGroups[parentId];
-            const cRow = document.createElement('tr');
-            cRow.className = "children-row";
-
-            const cCell = document.createElement('td');
-            // Menghitung colspan: Jumlah Ayah + Istri + Garis Nikah
-            cCell.colSpan = 1 + (person.partners.length * 2);
-            cCell.className = "children-container";
             
-            // Jarak antar kelompok anak (jika istri > 1)
-            if(gIdx > 0) cCell.style.borderTop = "30px solid var(--bg-app)"; 
-
-            kids.forEach((child, cIdx) => {
-                const wrap = document.createElement('div');
-                wrap.className = "child-node-wrap";
-
-                // Garis Vertikal Siku yang Menempel Perfect ke Kartu
-                const lineToCard = document.createElement('div');
-                lineToCard.className = "line-to-card";
-                wrap.appendChild(lineToCard);
-
-                // Label Info
-                let pLabel = "Utama";
-                if(parentId !== person.id) {
-                    const pIdx = person.partners.findIndex(p => p.id === parentId) + 1;
-                    pLabel = "Pasangan "+pIdx;
-                }
-                child.label = `Anak ke-${cIdx+1} (${pLabel})`;
-
-                wrap.appendChild(createFamilyTable(child));
-                cCell.appendChild(wrap);
-            });
-            cRow.appendChild(cCell);
-            table.appendChild(cRow);
+            couple.appendChild(mLine);
+            couple.appendChild(drawCard(p, true, person.id, idx + 1));
         });
 
-        return table;
+        // Jika anak dari utama (tanpa menantu)
+        if(person.children.some(c => !c.fromId || c.fromId === person.id) && person.partners.length === 0) {
+            const soloStem = document.createElement('div');
+            soloStem.className = "line-down-main";
+            soloStem.style.top = "40px";
+            couple.appendChild(soloStem);
+        }
+
+        unit.appendChild(couple);
+
+        // 2. Baris Anak
+        if(person.children.length > 0) {
+            const row = document.createElement('div');
+            row.className = "children-row";
+
+            person.children.forEach(child => {
+                const node = document.createElement('div');
+                node.className = "child-node";
+
+                const lineUp = document.createElement('div');
+                lineUp.className = "line-up-to-child";
+                node.appendChild(lineUp);
+
+                node.appendChild(createFamilyUnit(child));
+                row.appendChild(node);
+            });
+            unit.appendChild(row);
+        }
+
+        return unit;
     }
 
-    function createCard(p, isP, refId, order) {
-        const div = document.createElement('div');
-        div.className = `card ${isP ? 'card-partner' : ''}`;
-        div.innerHTML = `
-            ${(isP || p.label) ? `<div class="badge-info">${isP ? 'MENANTU '+order : p.label}</div>` : ''}
-            <span onclick="toggleMenu(event)" class="menu-btn">⋮</span>
+    function drawCard(p, isP, refId, order) {
+        const d = document.createElement('div');
+        d.className = `card ${isP ? 'card-partner' : ''}`;
+        d.innerHTML = `
+            <span onclick="toggleM(event)" class="btn-menu">⋮</span>
             <div class="dropdown">
-                <button onclick="openModal('edit', '${p.id}', '${isP?refId:''}')">✏️ EDIT INFO</button>
-                ${!isP ? `<button onclick="openModal('child', '${p.id}')">👶 TAMBAH ANAK</button>
-                          <button onclick="openModal('partner', '${p.id}')">💍 TAMBAH PASANGAN</button>` : ''}
+                <button onclick="openForm('edit', '${p.id}', '${isP?refId:''}')">✏️ EDIT DATA</button>
+                ${!isP ? `<button onclick="openForm('child', '${p.id}')">👶 TAMBAH ANAK</button>
+                          <button onclick="openForm('partner', '${p.id}')">💍 TAMBAH PASANGAN</button>` : ''}
                 <button class="text-red-500" onclick="del('${p.id}', ${isP}, '${refId}')">🗑️ HAPUS</button>
             </div>
-            <div class="text-[7px] font-extrabold text-blue-500 uppercase tracking-widest mb-1">${isP?'Afiliasi Menantu':'Garis Kandung'}</div>
-            <div class="font-bold text-xs text-blue-900 truncate uppercase">${p.name}</div>
-            <div class="text-[9px] text-gray-400 italic mt-1 truncate leading-tight">${p.note || '- Catatan Kosong -'}</div>
+            <div>${p.name}</div>
+            <div class="text-[9px] font-normal normal-case text-gray-500 mt-1">${p.note || ''}</div>
         `;
-        return div;
+        return d;
     }
 
-    // (Kode menu, modal, save, find, del, export/import sama seperti V17, hanya update ID penyimpanan localStorage)
-    function toggleMenu(e) {
+    function toggleM(e) {
         e.stopPropagation();
         document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
         e.target.nextElementSibling.classList.add('show');
     }
+
     window.onclick = () => document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
 
-    function openModal(type, id, pId = '') {
-        activeCtx = { type, id, pId };
-        document.getElementById('modal').classList.remove('hidden');
-        const rArea = document.getElementById('rel-area');
-        const rSel = document.getElementById('m-rel');
-        rArea.classList.add('hidden');
-        const current = find(nasabDB, id, pId);
-        document.getElementById('m-name').value = (type==='edit') ? current.name : '';
-        document.getElementById('m-note').value = (type==='edit') ? current.note || '' : '';
+    function openForm(type, id, pId = '') {
+        activeNode = { type, id, pId };
+        const box = document.getElementById('rel-box');
+        const sel = document.getElementById('m-rel');
+        box.classList.add('hidden');
+
         if(type === 'child') {
-            const n = find(nasabDB, id);
+            const n = find(db, id);
             if(n.partners.length > 0) {
-                rArea.classList.remove('hidden');
-                rSel.innerHTML = `<option value="${n.id}">Utama (${n.name})</option>`;
-                n.partners.forEach((p, i) => rSel.add(new Option(`Dgn Pasangan: ${p.name}`, p.id)));
+                box.classList.remove('hidden');
+                sel.innerHTML = `<option value="${n.id}">Utama (${n.name})</option>`;
+                n.partners.forEach(p => sel.add(new Option(`Dgn Pasangan: ${p.name}`, p.id)));
             }
         }
+        
+        const curr = find(db, id, pId);
+        document.getElementById('m-name').value = (type==='edit') ? curr.name : '';
+        document.getElementById('m-note').value = (type==='edit') ? curr.note || '' : '';
+        document.getElementById('modal').classList.remove('hidden');
     }
+
     function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
     function save() {
         const name = document.getElementById('m-name').value;
-        if(!name) return;
         const note = document.getElementById('m-note').value;
         const fid = document.getElementById('m-rel').value;
-        if(activeCtx.type === 'edit') {
-            const n = find(nasabDB, activeCtx.id, activeCtx.pId);
+        if(!name) return;
+
+        if(activeNode.type === 'edit') {
+            const n = find(db, activeNode.id, activeNode.pId);
             n.name = name; n.note = note;
-        } else if(activeCtx.type === 'child') {
-            const p = find(nasabDB, activeCtx.id);
+        } else if(activeNode.type === 'child') {
+            const p = find(db, activeNode.id);
             p.children.push({ id: "id"+Date.now(), name, note, partners: [], children: [], fromId: fid || p.id });
         } else {
-            const p = find(nasabDB, activeCtx.id);
+            const p = find(db, activeNode.id);
             p.partners.push({ id: "id"+Date.now(), name, note });
         }
-        sync(); closeModal();
+        localStorage.setItem('nasab_v19', JSON.stringify(db));
+        render(); closeModal();
     }
 
     function find(root, id, pId = '') {
@@ -369,7 +275,7 @@
             if(root.id === id) return root;
             for(let c of root.children) { let r = find(c, id); if(r) return r; }
         } else {
-            return find(nasabDB, pId).partners.find(pt => pt.id === id);
+            return find(db, pId).partners.find(pt => pt.id === id);
         }
         return null;
     }
@@ -377,10 +283,11 @@
     function del(id, isP, pId) {
         if(id === 'root' || !confirm("Hapus?")) return;
         if(isP) {
-            const p = find(nasabDB, pId);
+            const p = find(db, pId);
             p.partners = p.partners.filter(pt => pt.id !== id);
-        } else { removeRec(nasabDB, id); }
-        sync();
+        } else { removeRec(db, id); }
+        localStorage.setItem('nasab_v19', JSON.stringify(db));
+        render();
     }
 
     function removeRec(n, id) {
@@ -388,26 +295,19 @@
         n.children.forEach(c => removeRec(c, id));
     }
 
-    function sync() {
-        localStorage.setItem('nasab_pro_v18', JSON.stringify(nasabDB));
-        render();
+    function exportData() {
+        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "nasab_pro.json"; a.click();
     }
 
-    function exportJSON() {
-        const blob = new Blob([JSON.stringify(nasabDB)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "nasab_backup.json"; a.click();
-    }
-
-    function importJSON() {
+    function importData() {
         const input = document.createElement('input'); input.type = 'file';
         input.onchange = e => {
             const reader = new FileReader(); reader.readAsText(e.target.files[0]);
-            reader.onload = () => { nasabDB = JSON.parse(reader.result); sync(); }
+            reader.onload = () => { db = JSON.parse(reader.result); localStorage.setItem('nasab_v19', JSON.stringify(db)); render(); }
         };
         input.click();
     }
-    function resetData() { if(confirm("⚠️ Hapus semua data?")) { localStorage.removeItem('nasab_pro_v18'); location.reload(); } }
-    
 </script>
 </body>
 </html>
