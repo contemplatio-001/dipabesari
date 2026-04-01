@@ -3,190 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Silsilah Nasab V7 - Garis Terpisah</title>
+    <title>Nasab Pro V8 - Segmented Flow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --line-blue: #1e40af; --line-gray: #94a3b8; }
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        :root { --line-color: #1e40af; --partner-color: #64748b; }
+        body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; overflow: auto; }
 
         /* Navigasi */
-        nav { background: #1e40af; color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        nav { background: #1e40af; color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        /* Container Pohon */
-        .tree-container { padding: 100px; display: inline-block; min-width: 100%; text-align: center; }
-        .family-unit { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; margin: 0 30px; }
+        /* Container Utama */
+        .tree-wrapper { padding: 100px; display: inline-block; min-width: 100%; text-align: center; }
+        .family-block { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; margin: 0 40px; }
 
-        /* Baris Utama (Suami + Para Istri) */
-        .parent-row { display: flex; align-items: flex-start; justify-content: center; gap: 50px; position: relative; margin-bottom: 80px; }
-
-        /* Garis Pernikahan Horizontal */
-        .parent-row::after {
-            content: ""; position: absolute; top: 40px; left: 100px; right: 100px;
-            height: 2px; border-top: 2px dashed var(--line-gray); z-index: 0;
+        /* Baris Orang Tua */
+        .parents-row { display: flex; align-items: flex-start; justify-content: center; gap: 40px; position: relative; margin-bottom: 100px; }
+        
+        /* Garis Pernikahan (Hanya antar kartu di baris yang sama) */
+        .parents-row::after {
+            content: ""; position: absolute; top: 50%; left: 100px; right: 100px;
+            height: 2px; border-top: 2px dashed #94a3b8; z-index: 0;
         }
 
         /* Kartu Anggota */
-        .card { width: 200px; padding: 15px; background: white; border: 2px solid var(--line-blue); border-radius: 12px; position: relative; z-index: 10; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .card-partner { border-color: #64748b; border-style: dashed; background: #f1f5f9; }
+        .card { width: 200px; padding: 15px; background: white; border: 3px solid var(--line-color); border-radius: 15px; position: relative; z-index: 10; text-align: left; box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+        .card-partner { border-color: var(--partner-color); border-style: dashed; background: #f8fafc; }
 
-        /* Label Keterangan Atas */
-        .badge-top { position: absolute; top: -12px; left: 15px; background: var(--line-blue); color: white; font-size: 9px; padding: 2px 8px; border-radius: 4px; font-weight: bold; white-space: nowrap; }
+        /* Label Badge */
+        .badge-info { position: absolute; top: -14px; left: 12px; background: #1e40af; color: white; font-size: 10px; padding: 3px 10px; border-radius: 6px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .badge-partner { background: #64748b; }
 
-        /* GARIS VERTIKAL TURUN (Hanya ada jika punya anak dari ybs) */
-        .line-down { 
-            position: absolute; bottom: -80px; left: 50%; transform: translateX(-50%);
-            width: 3px; height: 80px; background: var(--line-blue); z-index: 5;
-        }
+        /* SISTEM GARIS TERSEGMENTASI */
+        .anchor-point { position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%); width: 4px; height: 100px; background: var(--line-color); }
+        .anchor-label { position: absolute; top: 40px; left: 10px; background: #fbbf24; color: #78350f; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; white-space: nowrap; transform: rotate(-90deg); transform-origin: left; }
 
-        /* AREA ANAK */
-        .children-container { 
-            display: flex; justify-content: center; align-items: flex-start;
-            border-top: 3px solid var(--line-blue); padding-top: 40px; position: relative;
-        }
+        /* Container Kelompok Anak berdasarkan Orang Tua tertentu */
+        .sub-children-group { display: flex; gap: 30px; padding-top: 30px; border-top: 4px solid var(--line-color); margin-top: 70px; position: relative; }
 
-        /* Dropdown */
-        .menu-toggle { cursor: pointer; float: right; color: #94a3b8; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 100; width: 170px; }
-        .dropdown-menu button { width: 100%; text-align: left; padding: 10px; font-size: 12px; border-bottom: 1px solid #f1f5f9; }
-        .dropdown-menu button:hover { background: #f8fafc; color: #1e40af; }
+        /* Dropdown Menu */
+        .dots { cursor: pointer; float: right; color: #94a3b8; font-size: 20px; line-height: 1; }
+        .menu-list { display: none; position: absolute; right: 0; top: 35px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 15px 30px rgba(0,0,0,0.15); z-index: 100; width: 180px; overflow: hidden; }
+        .menu-list button { width: 100%; text-align: left; padding: 12px 15px; font-size: 13px; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        .menu-list button:hover { background: #eff6ff; color: #1e40af; padding-left: 20px; }
         .show { display: block; }
 
-        @media print { .no-print { display: none; } body { background: white; } .tree-container { padding: 20px; } }
+        @media print { .no-print { display: none; } nav { display: none; } body { background: white; } .tree-wrapper { padding: 20px; } }
     </style>
 </head>
 <body>
 
-<nav class="no-print flex justify-between">
-    <div class="flex items-center gap-2">
-        <span class="text-2xl">🧬</span>
-        <h1 class="font-bold uppercase tracking-widest">Aplikasi Nasab V7</h1>
+<nav class="no-print flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <span class="text-3xl">🗂️</span>
+        <div>
+            <h1 class="font-black uppercase text-xl leading-none">NASAB PRO V8</h1>
+            <p class="text-[10px] text-blue-200 tracking-widest">SISTEM GARIS TERSEGMENTASI</p>
+        </div>
     </div>
-    <div class="flex gap-2">
-        <button onclick="exportExcel()" class="bg-green-600 px-4 py-2 rounded text-xs font-bold">EXCEL</button>
-        <button onclick="window.print()" class="bg-white text-blue-900 px-4 py-2 rounded text-xs font-bold">CETAK PDF</button>
-        <button onclick="resetApp()" class="bg-red-500 px-4 py-2 rounded text-xs font-bold">RESET</button>
+    <div class="flex gap-3">
+        <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-500 px-5 py-2 rounded-lg text-xs font-bold shadow-lg">EXCEL</button>
+        <button onclick="window.print()" class="bg-white text-blue-900 px-5 py-2 rounded-lg text-xs font-bold shadow-lg">CETAK PDF</button>
+        <button onclick="resetData()" class="bg-red-500 hover:bg-red-400 px-5 py-2 rounded-lg text-xs font-bold">RESET</button>
     </div>
 </nav>
 
-<div class="tree-container">
+<div class="tree-wrapper">
     <div id="tree-root"></div>
 </div>
 
-<div id="modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[2000] backdrop-blur-sm">
-    <div class="bg-white p-6 rounded-2xl w-80 shadow-2xl">
-        <h3 id="modal-title" class="font-bold text-slate-800 mb-4 border-b pb-2 text-center">Data Keluarga</h3>
-        <div class="space-y-4">
-            <input type="text" id="m-name" placeholder="Nama Lengkap" class="w-full border-2 p-2 rounded-xl outline-none focus:border-blue-500">
-            <select id="m-gender" class="w-full border-2 p-2 rounded-xl">
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-            </select>
+<div id="modal" class="fixed inset-0 bg-slate-900/70 hidden flex items-center justify-center z-[2000] backdrop-blur-md p-4">
+    <div class="bg-white p-8 rounded-3xl w-full max-w-sm shadow-2xl border-t-8 border-blue-600">
+        <h3 id="modal-title" class="text-xl font-black text-slate-800 mb-6 text-center italic">INPUT DATA KELUARGA</h3>
+        <div class="space-y-5">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Nama Lengkap</label>
+                <input type="text" id="m-name" class="w-full border-2 border-slate-100 p-3 rounded-2xl outline-none focus:border-blue-500 bg-slate-50">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Jenis Kelamin</label>
+                <select id="m-gender" class="w-full border-2 border-slate-100 p-3 rounded-2xl outline-none bg-slate-50">
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+            </div>
             <div id="relasi-div" class="hidden">
-                <label class="text-[10px] font-bold text-gray-400">ANAK DARI PASANGAN:</label>
-                <select id="m-relasi" class="w-full border-2 p-2 rounded-xl bg-blue-50"></select>
+                <label class="text-[10px] font-bold text-blue-600 uppercase ml-2 underline">Anak dari Pasangan ke:</label>
+                <select id="m-relasi" class="w-full border-2 border-blue-100 p-3 rounded-2xl bg-blue-50 outline-none"></select>
             </div>
         </div>
-        <div class="flex justify-end gap-2 mt-6">
-            <button onclick="closeModal()" class="text-gray-400 text-sm px-4">Batal</button>
-            <button onclick="saveData()" class="bg-blue-800 text-white px-6 py-2 rounded-xl font-bold">Simpan</button>
+        <div class="flex justify-end gap-3 mt-8">
+            <button onclick="closeModal()" class="text-slate-400 font-bold px-4">BATAL</button>
+            <button onclick="saveData()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black hover:bg-blue-700 shadow-xl">SIMPAN</button>
         </div>
     </div>
 </div>
 
 <script>
-    let nasabData = JSON.parse(localStorage.getItem('nasab_v7')) || {
+    let nasabDB = JSON.parse(localStorage.getItem('nasab_v8')) || {
         id: "root", name: "Kepala Keluarga", gender: "Laki-laki", partners: [], children: []
     };
 
-    let context = { type: '', id: '', pId: '' };
+    let task = { type: '', id: '', pId: '' };
 
-    function renderTree() {
+    function render() {
         const root = document.getElementById('tree-root');
         root.innerHTML = '';
-        root.appendChild(createNode(nasabData, null));
+        root.appendChild(buildBranch(nasabDB));
     }
 
-    function createNode(person, parentObj) {
-        const unit = document.createElement('div');
-        unit.className = "family-unit";
+    function buildBranch(person) {
+        const block = document.createElement('div');
+        block.className = "family-block";
 
-        // Row Orang Tua
         const pRow = document.createElement('div');
-        pRow.className = "parent-row";
+        pRow.className = "parents-row";
 
         // Card Orang Tua Utama
-        const mainCard = createCard(person, false, null, 0);
+        const mainCard = createCard(person, false);
         pRow.appendChild(mainCard);
 
-        // Cek jika ada anak dari orang tua utama (tanpa pasangan spesifik)
-        const hasDirectChildren = person.children.some(c => !c.fromPartnerId || c.fromPartnerId === person.id);
-        if (hasDirectChildren) {
-            const line = document.createElement('div');
-            line.className = "line-down";
-            mainCard.appendChild(line);
-        }
-
-        // Card Pasangan-pasangan
+        // Pasangan-pasangan
         person.partners.forEach((partner, idx) => {
-            const pCard = createCard(partner, true, person.id, idx + 1);
-            pRow.appendChild(pCard);
+            pRow.appendChild(createCard(partner, true, person.id, idx + 1));
+        });
 
-            // Cek jika ada anak dari pasangan ini
-            const hasChildrenFromPartner = person.children.some(c => c.fromPartnerId === partner.id);
-            if (hasChildrenFromPartner) {
-                const line = document.createElement('div');
-                line.className = "line-down";
-                pCard.appendChild(line);
+        block.appendChild(pRow);
+
+        // LOGIKA GARIS TERSEGMENTASI
+        // Kita kelompokkan anak berdasarkan ID Orang Tua mereka
+        const groups = {};
+        
+        // Inisialisasi grup untuk Utama
+        groups[person.id] = person.children.filter(c => !c.fromId || c.fromId === person.id);
+        
+        // Inisialisasi grup untuk setiap pasangan
+        person.partners.forEach(p => {
+            groups[p.id] = person.children.filter(c => c.fromId === p.id);
+        });
+
+        // Buat Baris Anak untuk setiap grup yang ada isinya
+        Object.keys(groups).forEach((key) => {
+            if (groups[key].length > 0) {
+                // Tambahkan Garis Anchor di Card yang sesuai
+                const parentCard = document.querySelector(`[data-id="${key}"]`);
+                if (parentCard) {
+                    const anchor = document.createElement('div');
+                    anchor.className = "anchor-point";
+                    
+                    // Label di garis vertikal
+                    const pIdx = person.partners.findIndex(p => p.id === key) + 1;
+                    const label = document.createElement('span');
+                    label.className = "anchor-label";
+                    label.innerText = key === person.id ? "JALUR UTAMA" : "JALUR PSNG " + pIdx;
+                    
+                    anchor.appendChild(label);
+                    parentCard.appendChild(anchor);
+
+                    // Buat container anak untuk grup ini
+                    const subArea = document.createElement('div');
+                    subArea.className = "sub-children-group";
+                    
+                    groups[key].forEach((child, cIdx) => {
+                        const pNum = key === person.id ? "Utama" : "Psng " + pIdx;
+                        child.tempInfo = `Anak ke-${cIdx+1} (${pNum})`;
+                        subArea.appendChild(buildBranch(child));
+                    });
+                    
+                    block.appendChild(subArea);
+                }
             }
         });
 
-        unit.appendChild(pRow);
-
-        // Baris Anak-anak
-        if (person.children.length > 0) {
-            const cContainer = document.createElement('div');
-            cContainer.className = "children-container";
-            
-            person.children.forEach((child, cIdx) => {
-                // Mencari info pasangan ke berapa
-                let pIdx = 0;
-                if(child.fromPartnerId) {
-                    pIdx = person.partners.findIndex(p => p.id === child.fromPartnerId) + 1;
-                }
-                
-                // Tambahkan info urutan ke objek anak untuk ditampilkan di cardnya
-                child.tempOrderInfo = `Anak ke-${cIdx+1} dari ${pIdx === 0 ? 'Utama' : 'Psng ke-'+pIdx}`;
-                
-                cContainer.appendChild(createNode(child, person));
-            });
-            unit.appendChild(cContainer);
-        }
-
-        return unit;
+        return block;
     }
 
-    function createCard(p, isPartner, refId, order) {
+    function createCard(p, isP, refId, order) {
         const card = document.createElement('div');
-        card.className = `card ${isPartner ? 'card-partner' : ''}`;
+        card.className = `card ${isP ? 'card-partner' : ''}`;
+        card.setAttribute('data-id', p.id);
         
-        let label = isPartner ? `Psng ke-${order}` : (p.tempOrderInfo || "");
+        let label = isP ? `Pasangan ke-${order}` : (p.tempInfo || "");
         
         card.innerHTML = `
-            ${label ? `<div class="badge-top">${label}</div>` : ''}
+            ${label ? `<div class="badge-info ${isP?'badge-partner':''}">${label}</div>` : ''}
             <div class="relative">
-                <span onclick="toggleMenu(event)" class="menu-toggle font-bold">⋮</span>
-                <div class="dropdown-menu">
-                    <button onclick="openModal('edit', '${p.id}', '${isPartner?refId:''}')">✏️ Edit</button>
-                    ${!isPartner ? `
-                        <button onclick="openModal('child', '${p.id}')">👶 Tambah Anak</button>
-                        <button onclick="openModal('partner', '${p.id}')">💍 Tambah Pasangan</button>
+                <span onclick="toggleMenu(event)" class="dots">⋮</span>
+                <div class="menu-list">
+                    <button onclick="openModal('edit', '${p.id}', '${isP?refId:''}')">✏️ EDIT NAMA</button>
+                    ${!isP ? `
+                        <button onclick="openModal('child', '${p.id}')">👶 TAMBAH ANAK</button>
+                        <button onclick="openModal('partner', '${p.id}')">💍 TAMBAH PASANGAN</button>
                     ` : ''}
-                    <button class="text-red-500" onclick="deleteItem('${p.id}', ${isPartner}, '${refId}')">🗑️ Hapus</button>
+                    <button class="text-red-500 font-bold" onclick="deleteItem('${p.id}', ${isP}, '${refId}')">🗑️ HAPUS</button>
                 </div>
             </div>
-            <div class="text-[8px] font-black uppercase tracking-tighter ${isPartner?'text-slate-400':'text-blue-700'}">${isPartner?'Menantu':'Kandung'}</div>
-            <div class="font-bold text-sm text-slate-800 truncate mt-1" title="${p.name}">${p.name}</div>
+            <div class="text-[8px] font-black uppercase tracking-tighter ${isP?'text-slate-400':'text-blue-700'}">${isP?'Menantu':'Kandung'}</div>
+            <div class="font-bold text-sm text-slate-800 truncate mt-1">${p.name}</div>
             <div class="text-[10px] text-slate-400 italic">${p.gender}</div>
         `;
         return card;
@@ -194,14 +207,14 @@
 
     function toggleMenu(e) {
         e.stopPropagation();
-        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+        document.querySelectorAll('.menu-list').forEach(m => m.classList.remove('show'));
         e.target.nextElementSibling.classList.add('show');
     }
 
-    window.onclick = () => document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+    window.onclick = () => document.querySelectorAll('.menu-list').forEach(m => m.classList.remove('show'));
 
     function openModal(type, id, pId = '') {
-        context = { type, id, pId };
+        task = { type, id, pId };
         const modal = document.getElementById('modal');
         const relDiv = document.getElementById('relasi-div');
         const relSel = document.getElementById('m-relasi');
@@ -211,18 +224,16 @@
         relSel.innerHTML = '';
 
         if (type === 'child') {
-            const pNode = findNode(nasabData, id);
-            if (pNode.partners.length > 0) {
-                relDiv.classList.remove('hidden');
-                relSel.add(new Option(`Utama (${pNode.name})`, pNode.id));
-                pNode.partners.forEach((p, i) => {
-                    relSel.add(new Option(`Psng ke-${i+1} (${p.name})`, p.id));
-                });
-            }
+            const node = find(nasabDB, id);
+            relDiv.classList.remove('hidden');
+            relSel.add(new Option(`Utama (${node.name})`, node.id));
+            node.partners.forEach((p, i) => {
+                relSel.add(new Option(`Pasangan ke-${i+1} (${p.name})`, p.id));
+            });
         }
         
         if (type === 'edit') {
-            const n = findNode(nasabData, id, pId);
+            const n = find(nasabDB, id, pId);
             document.getElementById('m-name').value = n.name;
         } else {
             document.getElementById('m-name').value = '';
@@ -237,29 +248,29 @@
         const relId = document.getElementById('m-relasi').value;
         if (!name) return;
 
-        if (context.type === 'edit') {
-            const n = findNode(nasabData, context.id, context.pId);
+        if (task.type === 'edit') {
+            const n = find(nasabDB, task.id, task.pId);
             n.name = name; n.gender = gender;
-        } else if (context.type === 'child') {
-            const parent = findNode(nasabData, context.id);
-            parent.children.push({ id: "id"+Date.now(), name, gender, partners: [], children: [], fromPartnerId: relId });
+        } else if (task.type === 'child') {
+            const parent = find(nasabDB, task.id);
+            parent.children.push({ id: "id"+Date.now(), name, gender, partners: [], children: [], fromId: relId });
         } else {
-            const parent = findNode(nasabData, context.id);
+            const parent = find(nasabDB, task.id);
             parent.partners.push({ id: "id"+Date.now(), name, gender });
         }
 
-        localStorage.setItem('nasab_v7', JSON.stringify(nasabData));
-        renderTree(); closeModal();
+        localStorage.setItem('nasab_v8', JSON.stringify(nasabDB));
+        render(); closeModal();
     }
 
-    function findNode(root, id, pId = '') {
+    function find(root, id, pId = '') {
         if (!pId) {
             if (root.id === id) return root;
             for (let c of root.children) {
-                let r = findNode(c, id); if (r) return r;
+                let r = find(c, id); if (r) return r;
             }
         } else {
-            const parent = findNode(nasabData, pId);
+            const parent = find(nasabDB, pId);
             return parent.partners.find(p => p.id === id);
         }
         return null;
@@ -267,15 +278,15 @@
 
     function deleteItem(id, isP, pId) {
         if (id === 'root') return;
-        if (!confirm("Hapus permanen data ini?")) return;
+        if (!confirm("Hapus data ini?")) return;
         if (isP) {
-            const parent = findNode(nasabData, pId);
+            const parent = find(nasabDB, pId);
             parent.partners = parent.partners.filter(p => p.id !== id);
         } else {
-            removeRec(nasabData, id);
+            removeRec(nasabDB, id);
         }
-        localStorage.setItem('nasab_v7', JSON.stringify(nasabData));
-        renderTree();
+        localStorage.setItem('nasab_v8', JSON.stringify(nasabDB));
+        render();
     }
 
     function removeRec(n, id) {
@@ -283,23 +294,23 @@
         n.children.forEach(c => removeRec(c, id));
     }
 
-    function resetApp() { if(confirm("Reset semua?")) { localStorage.clear(); location.reload(); }}
+    function resetData() { if(confirm("Reset semua data?")){ localStorage.clear(); location.reload(); }}
 
-    function exportExcel() {
+    function exportToExcel() {
         let rows = [];
-        const flatten = (n, p="-") => {
-            rows.push({ Nama: n.name, JK: n.gender, Status: "Kandung", Hubungan: "Anak dari "+p });
-            n.partners.forEach(pt => rows.push({ Nama: pt.name, JK: pt.gender, Status: "Menantu", Hubungan: "Psng dari "+n.name }));
-            n.children.forEach(c => flatten(c, n.name));
+        const flat = (n, p="-") => {
+            rows.push({ Nama: n.name, Gender: n.gender, Status: "Kandung", Hubungan: "Anak dari "+p });
+            n.partners.forEach(pt => rows.push({ Nama: pt.name, Gender: pt.gender, Status: "Menantu", Hubungan: "Psng dari "+n.name }));
+            n.children.forEach(c => flat(c, n.name));
         };
-        flatten(nasabData);
+        flat(nasabDB);
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Nasab");
-        XLSX.writeFile(wb, "Silsilah_Nasab_V7.xlsx");
+        XLSX.writeFile(wb, "Nasab_V8.xlsx");
     }
 
-    renderTree();
+    render();
 </script>
 </body>
 </html>
